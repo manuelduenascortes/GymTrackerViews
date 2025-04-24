@@ -1,15 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:paddingStart="16dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?android:attr/selectableItemBackground"> <LinearLayout
+    android:id="@+id/workoutInfoLayout"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="?android:attr/selectableItemBackground"> <TextView
-    android:id="@+id/textViewWorkoutId"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:textAppearance="?attr/textAppearanceCaption" android:text="Workout ID: ?" /> <TextView
-    android:id="@+id/textViewWorkoutStartTime"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="4dp" android:textAppearance="?attr/textAppearanceBody1" android:text="Inicio: ?" /> </LinearLayout>
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toStartOf="@+id/buttonDeleteWorkout"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    android:layout_marginEnd="8dp">
+
+    <TextView
+        android:id="@+id/textViewWorkoutId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceCaption"
+        tools:text="Workout ID: ?" />
+
+    <TextView
+        android:id="@+id/textViewWorkoutStartTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAppearance="?attr/textAppearanceBody1"
+        tools:text="Inicio: ?" />
+</LinearLayout>
+
+    <ImageButton
+        android:id="@+id/buttonDeleteWorkout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Borrar workout"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_delete" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
