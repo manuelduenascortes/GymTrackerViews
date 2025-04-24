@@ -11,10 +11,11 @@ interface WorkoutDao {
     @Insert
     suspend fun insertWorkout(workout: Workout): Long
 
-    // Añadimos una función para obtener un Workout por ID (la usaremos en el DetailFragment)
+    // Función para obtener un Workout específico por su ID como un Flow
     @Query("SELECT * FROM workouts WHERE id = :workoutId")
-    fun getWorkoutFlowById(workoutId: Long): Flow<Workout?> // Devuelve Flow
+    fun getWorkoutFlowById(workoutId: Long): Flow<Workout?> // Devuelve Flow (puede ser null)
 
+    // Función para obtener todos los workouts (ya la teníamos)
     @Query("SELECT * FROM workouts ORDER BY start_time DESC")
     fun getAllWorkouts(): Flow<List<Workout>>
 
