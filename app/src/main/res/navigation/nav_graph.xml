@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/workoutListFragment">
+
+    <fragment
+        android:id="@+id/workoutListFragment"
+        android:name="com.example.gymtrackerviews.WorkoutListFragment"
+        android:label="Mis Entrenamientos"
+        tools:layout="@layout/fragment_workout_list" >
+        <action
+            android:id="@+id/action_workoutListFragment_to_newWorkoutFragment"
+            app:destination="@id/newWorkoutFragment" />
+        <action
+            android:id="@+id/action_workoutListFragment_to_workoutDetailFragment"
+            app:destination="@id/workoutDetailFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/newWorkoutFragment"
+        android:name="com.example.gymtrackerviews.NewWorkoutFragment"
+        android:label="Nuevo Entrenamiento"
+        tools:layout="@layout/fragment_new_workout" />
+    <fragment
+        android:id="@+id/workoutDetailFragment"
+        android:name="com.example.gymtrackerviews.WorkoutDetailFragment"
+        android:label="Detalle Workout"
+        tools:layout="@layout/fragment_workout_detail" >
+        <argument
+            android:name="workoutId"
+            app:argType="long" />
+    </fragment>
+</navigation>

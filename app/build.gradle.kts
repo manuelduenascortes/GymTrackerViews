@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt") // Plugin para procesar anotaciones de Room
+    id("androidx.navigation.safeargs.kotlin") // Plugin para Safe Args
 }
 
 android {
@@ -40,26 +41,39 @@ android {
 }
 
 dependencies {
-    // Definimos una variable para la versión de Room (usa la última estable)
-    val room_version = "2.6.1" // Puedes buscar la última versión estable de Room
+    // Variable para versiones (ajústalas si es necesario a las últimas estables)
+    val room_version = "2.6.1"
+    val lifecycle_version = "2.7.0"
+    val coroutines_version = "1.7.3"
+    val navigation_version = "2.7.7"
+    val appcompat_version = "1.6.1"
+    val core_ktx_version = "1.12.0"
+    val material_version = "1.11.0"
+    val constraint_layout_version = "2.1.4"
 
-    // Dependencias Core y Material
-    implementation("androidx.core:core-ktx:1.12.0") // Verifica versión
-    implementation("androidx.appcompat:appcompat:1.6.1") // Verifica versión
-    implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4") // Verifica versión
+    // Core & UI
+    implementation("androidx.core:core-ktx:$core_ktx_version")
+    implementation("androidx.appcompat:appcompat:$appcompat_version")
+    implementation("com.google.android.material:material:$material_version")
+    implementation("androidx.constraintlayout:constraintlayout:$constraint_layout_version")
 
-    // --- Dependencias de Room AÑADIDAS ---
-    implementation("androidx.room:room-runtime:$room_version") // Librería principal de Room
-    implementation("androidx.room:room-ktx:$room_version")     // Extensiones Kotlin para Room (Coroutines, Flow)
-    kapt("androidx.room:room-compiler:$room_version")          // Procesador de anotaciones de Room (necesario con kapt)
+    // Room (Base de datos)
+    implementation("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-ktx:$room_version") // Extensiones Kotlin (Flow, suspend)
+    kapt("androidx.room:room-compiler:$room_version")     // Procesador de anotaciones
 
-    // --- Dependencias de Coroutines (útiles con Room KTX y Flow) ---
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3") // Verifica versión
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") // Verifica versión
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version")
 
-    // --- Dependencias de Lifecycle (útiles con Coroutines y ViewModels más adelante) ---
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0") // Verifica versión
+    // Lifecycle (ViewModel, LiveData, LifecycleScope)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version") // Para ViewModels (futuro)
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")   // Para LiveData (alternativa a Flow)
+
+    // Navigation Component
+    implementation("androidx.navigation:navigation-fragment-ktx:$navigation_version")
+    implementation("androidx.navigation:navigation-ui-ktx:$navigation_version")
 
     // Dependencias de Test
     testImplementation("junit:junit:4.13.2")
