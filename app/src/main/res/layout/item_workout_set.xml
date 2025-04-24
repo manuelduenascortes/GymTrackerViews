@@ -1,31 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
     android:paddingStart="16dp"
-    android:paddingEnd="16dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:gravity="center_vertical">
+    android:paddingEnd="8dp" android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
     <TextView
         android:id="@+id/textViewExerciseName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="3" android:textAppearance="?attr/textAppearanceBody1"
+        android:layout_marginEnd="8dp"
+        android:textAppearance="?attr/textAppearanceBody1"
         android:textStyle="bold"
-        tools:text="Press de Banca con Barra" /> <TextView
-    android:id="@+id/textViewReps"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:textAppearance="?attr/textAppearanceBody2"
-    tools:text="10 reps" /> <TextView
-    android:id="@+id/textViewWeight"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="8dp"
-    android:textAppearance="?attr/textAppearanceBody2"
-    tools:text="\@ 60.5 kg" /> </LinearLayout>
+        app:layout_constraintEnd_toStartOf="@+id/textViewReps"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:text="Press de Banca con Barra Muy Largo" />
+
+    <TextView
+        android:id="@+id/textViewReps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:textAppearance="?attr/textAppearanceBody2"
+        app:layout_constraintEnd_toStartOf="@+id/textViewWeight"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:text="10 reps" />
+
+    <TextView
+        android:id="@+id/textViewWeight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:textAppearance="?attr/textAppearanceBody2"
+        app:layout_constraintEnd_toStartOf="@+id/buttonDeleteSet"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:text="\@ 60.5 kg" />
+
+    <ImageButton
+        android:id="@+id/buttonDeleteSet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Borrar serie"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_delete" /> </androidx.constraintlayout.widget.ConstraintLayout>
