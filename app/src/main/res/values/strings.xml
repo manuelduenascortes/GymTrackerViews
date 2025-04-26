@@ -3,4 +3,20 @@
     <string name="start_new_workout">Iniciar nuevo entrenamiento</string>
     <string name="no_workouts_message">No hay entrenamientos guardados.\nPulsa + para añadir el primero.</string>
     <string name="no_sets_message">Aún no hay series para este workout.\n¡Pulsa "Añadir Serie"!</string>
+
+    <string-array name="default_exercise_list">
+        <item>Press de Banca con Barra</item>
+        <item>Sentadilla con Barra</item>
+        <item>Peso Muerto</item>
+        <item>Press Militar con Barra</item>
+        <item>Remo con Barra</item>
+        <item>Dominadas</item>
+        <item>Fondos en Paralelas</item>
+        <item>Curl de Bíceps con Barra</item>
+        <item>Press Francés</item>
+        <item>Elevaciones Laterales</item>
+        <item>Prensa de Piernas</item>
+        <item>Extensión de Cuádriceps</item>
+        <item>Curl Femoral</item>
+    </string-array>
 </resources>

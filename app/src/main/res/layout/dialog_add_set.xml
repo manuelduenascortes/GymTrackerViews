@@ -8,14 +8,13 @@
     android:paddingTop="16dp"
     android:paddingBottom="16dp">
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/editTextExerciseName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="48dp"
-        android:hint="Nombre del Ejercicio"
-        android:inputType="textCapWords" />
-
+        android:hint="Nombre del Ejercicio (escribe o selecciona)"
+        android:completionThreshold="1" android:inputType="textCapWords" />
     <EditText
         android:id="@+id/editTextReps"
         android:layout_width="match_parent"
