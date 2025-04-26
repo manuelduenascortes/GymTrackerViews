@@ -11,5 +11,11 @@ data class Workout(
     val id: Long = 0,
 
     @ColumnInfo(name = "start_time")
-    val startTime: Date
+    val startTime: Date, // La hora de inicio sigue siendo obligatoria
+
+    // 👇 --- CAMPO AÑADIDO --- 👇
+    // Guardará la hora de fin. Es 'Date?' (nullable) porque puede no haber terminado.
+    @ColumnInfo(name = "end_time")
+    val endTime: Date? = null
+    // 👆 --- FIN CAMPO AÑADIDO --- 👆
 )

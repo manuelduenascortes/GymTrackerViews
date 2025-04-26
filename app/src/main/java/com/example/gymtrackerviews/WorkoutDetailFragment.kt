@@ -1,4 +1,4 @@
-package com.example.gymtrackerviews // Asegúrate que es tu paquete
+package com.example.gymtrackerviews // Tu paquete
 
 import android.os.Bundle
 import android.util.Log
@@ -6,10 +6,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter // Import para el AutoCompleteTextView
+import android.widget.ArrayAdapter // Para AutoCompleteTextView
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible // Para controlar visibilidad fácilmente
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -30,13 +31,14 @@ class WorkoutDetailFragment : Fragment() {
 
     // Obtenemos la BD una vez para pasar DAOs a la Factory
     private val database by lazy { AppDatabase.getDatabase(requireContext().applicationContext) }
-    // Obtenemos el ViewModel
+    // Obtenemos el ViewModel usando la Factory
     private val viewModel: WorkoutDetailViewModel by viewModels {
         WorkoutDetailViewModel.Factory(database.workoutDao(), database.workoutSetDao())
     }
     // Adapter para la lista de series
     private lateinit var workoutSetAdapter: WorkoutSetAdapter
 
+    // --- onCreateView con firma correcta ---
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -46,31 +48,41 @@ class WorkoutDetailFragment : Fragment() {
         Log.d("WorkoutDetailFragment", "--- onCreateView END ---")
         return binding.root
     }
+    // --- FIN onCreateView ---
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Log.d("WorkoutDetailFragment", "--- onViewCreated START (Workout ID from ViewModel: ${viewModel.workoutId}) ---")
         super.onViewCreated(view, savedInstanceState)
 
+        // Mostramos el ID del workout (obtenido del ViewModel)
         binding.textViewDetailTitle.text = "Detalles del Workout ID: ${viewModel.workoutId}"
 
-        // Setup y observación
+        // Configuramos RecyclerView y empezamos a observar datos
         setupSetsRecyclerView()
         observeViewModelData()
 
-        // Listener para el botón principal de añadir
+        // Listener para el botón "Añadir Serie"
         binding.buttonAddSet.setOnClickListener {
             Log.d("WorkoutDetailFragment", "Add Set button clicked")
-            showAddOrEditSetDialog(null) // null indica que es para añadir nuevo
+            showAddOrEditSetDialog(null) // null indica que es para añadir
+        }
+
+        // Listener para el botón "Finalizar Workout"
+        binding.buttonFinishWorkout.setOnClickListener {
+            Log.d("WorkoutDetailFragment", "Finish Workout button clicked for workout ID: ${viewModel.workoutId}")
+            viewModel.finishWorkout() // Llama al ViewModel
+            Toast.makeText(context, "Workout finalizado", Toast.LENGTH_SHORT).show()
         }
         Log.d("WorkoutDetailFragment", "--- onViewCreated END ---")
     }
 
-    // Observa los datos del ViewModel (Workout y Lista de Sets)
+    // Observa todos los StateFlows del ViewModel
     private fun observeViewModelData() {
         Log.d("WorkoutDetailFragment", "Starting to observe ViewModel data")
         viewLifecycleOwner.lifecycleScope.launch {
+            // Usamos repeatOnLifecycle para observar solo cuando el fragment está visible
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Corutina para observar los detalles del workout
+                // 1. Observar detalles del Workout
                 launch {
                     viewModel.workoutDetails.collectLatest { workout ->
                         if (workout != null) {
@@ -83,31 +95,38 @@ class WorkoutDetailFragment : Fragment() {
                         }
                     }
                 }
-                // Corutina para observar la lista de series y gestionar visibilidad
+                // 2. Observar lista de Series y gestionar visibilidad
                 launch {
                     viewModel.workoutSets.collectLatest { setsList ->
                         Log.d("WorkoutDetailFragment", "Sets list updated from ViewModel. Count: ${setsList.size}")
-
                         // Gestión de visibilidad de lista/mensaje vacío
-                        if (setsList.isEmpty()) {
-                            binding.recyclerViewSets.visibility = View.GONE
-                            binding.textViewEmptySets.visibility = View.VISIBLE
-                        } else {
-                            binding.recyclerViewSets.visibility = View.VISIBLE
-                            binding.textViewEmptySets.visibility = View.GONE
-                        }
+                        val isEmpty = setsList.isEmpty()
+                        binding.recyclerViewSets.isVisible = !isEmpty
+                        binding.textViewEmptySets.isVisible = isEmpty
 
                         // Actualizar adapter
                         if(::workoutSetAdapter.isInitialized) {
                             workoutSetAdapter.submitList(setsList)
+                        } else {
+                            Log.e("WorkoutDetailFragment", "WorkoutSetAdapter not initialized when trying to submit list.")
                         }
                     }
-                } // Fin launch series
+                }
+                // 3. Observar estado 'finalizado' y gestionar botones
+                launch {
+                    viewModel.isWorkoutFinished.collectLatest { isFinished ->
+                        Log.d("WorkoutDetailFragment", "Workout finished state updated: $isFinished")
+                        // Ocultar botón "Finalizar" si ya está finalizado
+                        binding.buttonFinishWorkout.isVisible = !isFinished
+                        // Deshabilitar botón "Añadir Serie" si ya está finalizado
+                        binding.buttonAddSet.isEnabled = !isFinished
+                    }
+                }
             } // Fin repeatOnLifecycle
         } // Fin launch principal
     }
 
-    // Configura el RecyclerView de series y su adapter (con lambdas para clicks)
+    // Configura el RecyclerView y su adapter (con lambdas para clicks)
     private fun setupSetsRecyclerView() {
         workoutSetAdapter = WorkoutSetAdapter(
             onItemClick = { setToEdit ->
@@ -128,42 +147,37 @@ class WorkoutDetailFragment : Fragment() {
 
     // Muestra el diálogo para añadir o editar una serie
     private fun showAddOrEditSetDialog(existingSet: WorkoutSet?) {
-        // Inflamos el layout del diálogo
         val dialogBinding = DialogAddSetBinding.inflate(LayoutInflater.from(requireContext()))
-        val isEditing = existingSet != null // True si estamos editando, false si añadiendo
+        val isEditing = existingSet != null
 
-        // --- Configuración del AutoCompleteTextView ---
+        // Configuración del AutoCompleteTextView
         try {
             val exercises: Array<String> = resources.getStringArray(R.array.default_exercise_list)
             val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, exercises)
-            dialogBinding.editTextExerciseName.setAdapter(adapter) // Asignamos el adapter
+            dialogBinding.editTextExerciseName.setAdapter(adapter)
             Log.d("WorkoutDetailFragment", "AutoCompleteTextView adapter set.")
         } catch (e: Exception) {
             Log.e("WorkoutDetailFragment", "Error setting AutoCompleteTextView adapter", e)
         }
-        // --- Fin Configuración ---
 
-
-        // Si estamos editando, rellenamos los campos
+        // Si editamos, rellenamos campos
         if (isEditing && existingSet != null) {
-            dialogBinding.editTextExerciseName.setText(existingSet.exerciseName, false) // false para no filtrar al inicio
+            dialogBinding.editTextExerciseName.setText(existingSet.exerciseName, false)
             dialogBinding.editTextReps.setText(existingSet.repetitions.toString())
             dialogBinding.editTextWeight.setText(existingSet.weight.toString())
             Log.d("WorkoutDetailFragment", "Dialog pre-filled for editing set ID: ${existingSet.id}")
         }
 
-        // Construimos el diálogo
+        // Construimos y mostramos el diálogo
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle(if (isEditing) "Editar Serie" else "Añadir Nueva Serie")
-        builder.setView(dialogBinding.root) // Usamos la vista inflada
-
-        // Botón Positivo (Guardar/Actualizar)
+        builder.setView(dialogBinding.root)
         builder.setPositiveButton(if (isEditing) "Actualizar" else "Guardar") { dialog, _ ->
+            // Lógica de guardar/actualizar
             val exerciseName = dialogBinding.editTextExerciseName.text.toString().trim()
             val repsString = dialogBinding.editTextReps.text.toString()
             val weightString = dialogBinding.editTextWeight.text.toString()
 
-            // Validación simple
             if (exerciseName.isEmpty() || repsString.isEmpty() || weightString.isEmpty()) {
                 Toast.makeText(context, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
                 return@setPositiveButton
@@ -174,39 +188,24 @@ class WorkoutDetailFragment : Fragment() {
                 val weight = weightString.toDouble()
 
                 if (isEditing && existingSet != null) {
-                    // Modo Edición: Creamos copia con mismo ID y llamamos a update
-                    val updatedSet = existingSet.copy(
-                        exerciseName = exerciseName,
-                        repetitions = reps,
-                        weight = weight
-                    )
+                    val updatedSet = existingSet.copy(exerciseName = exerciseName, repetitions = reps, weight = weight)
                     viewModel.updateSet(updatedSet)
                     Log.d("WorkoutDetailFragment", "Called viewModel.updateSet for set ID: ${updatedSet.id}")
                     Toast.makeText(context, "Serie actualizada", Toast.LENGTH_SHORT).show()
                 } else {
-                    // Modo Añadir: Llamamos a insert
                     viewModel.insertSet(exerciseName, reps, weight)
                     Log.d("WorkoutDetailFragment", "Called viewModel.insertSet")
                     Toast.makeText(context, "Serie guardada", Toast.LENGTH_SHORT).show()
                 }
-                dialog.dismiss() // Cerramos el diálogo
-
+                dialog.dismiss()
             } catch (e: NumberFormatException) {
                 Toast.makeText(context, "Introduce números válidos para Reps y Peso", Toast.LENGTH_SHORT).show()
             }
-        } // Fin Botón Positivo
-
-        // Botón Negativo (Cancelar)
-        builder.setNegativeButton("Cancelar") { dialog, _ ->
-            Log.d("WorkoutDetailFragment", "Add/Edit dialog cancelled.")
-            dialog.dismiss()
         }
-
-        // Mostramos el diálogo
+        builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.dismiss() }
         builder.create().show()
         Log.d("WorkoutDetailFragment", "Add/Edit dialog shown. Editing: $isEditing")
-    } // --- FIN showAddOrEditSetDialog ---
-
+    }
 
     // Muestra diálogo para confirmar borrado de serie
     private fun showDeleteConfirmationDialog(setToDelete: WorkoutSet) {
@@ -214,15 +213,14 @@ class WorkoutDetailFragment : Fragment() {
             .setTitle("Confirmar Borrado")
             .setMessage("¿Seguro que quieres borrar esta serie?\n(${setToDelete.exerciseName}: ${setToDelete.repetitions} reps @ ${setToDelete.weight} kg)")
             .setPositiveButton("Borrar") { _, _ ->
-                viewModel.deleteSet(setToDelete) // Llama al ViewModel
+                viewModel.deleteSet(setToDelete)
                 Log.d("WorkoutDetailFragment", "Delete confirmed for set ID: ${setToDelete.id}. Called viewModel.deleteSet")
                 Toast.makeText(context, "Serie borrada", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancelar", null)
             .show()
         Log.d("WorkoutDetailFragment", "Delete confirmation dialog shown for set ID: ${setToDelete.id}")
-    } // --- FIN showDeleteConfirmationDialog ---
-
+    }
 
     // Limpia el binding cuando la vista se destruye
     override fun onDestroyView() {

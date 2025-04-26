@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update // Importamos @Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -20,4 +21,9 @@ interface WorkoutDao {
 
     @Delete
     suspend fun deleteWorkout(workout: Workout)
+
+    // 👇 --- FUNCIÓN AÑADIDA --- 👇
+    @Update
+    suspend fun updateWorkout(workout: Workout)
+    // 👆 --- FIN FUNCIÓN AÑADIDA --- 👆
 }
