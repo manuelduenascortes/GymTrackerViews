@@ -1,7 +1,7 @@
 package com.example.gymtrackerviews // Tu paquete
 
 import androidx.room.Dao
-import androidx.room.Delete // Importamos @Delete
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
@@ -18,8 +18,6 @@ interface WorkoutDao {
     @Query("SELECT * FROM workouts ORDER BY start_time DESC")
     fun getAllWorkouts(): Flow<List<Workout>>
 
-    // 👇 --- FUNCIÓN AÑADIDA --- 👇
     @Delete
     suspend fun deleteWorkout(workout: Workout)
-    // 👆 --- FIN FUNCIÓN AÑADIDA --- 👆
 }

@@ -3,11 +3,11 @@ package com.example.gymtrackerviews // Tu paquete
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater // Import necesario
+import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup       // Import necesario
+import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog // Importamos AlertDialog
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -18,7 +18,7 @@ import com.example.gymtrackerviews.databinding.FragmentWorkoutListBinding // Tu 
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class WorkoutListFragment : Fragment() { // Asegúrate que hereda de Fragment
+class WorkoutListFragment : Fragment() {
 
     private var _binding: FragmentWorkoutListBinding? = null
     private val binding get() = _binding!!
@@ -28,31 +28,23 @@ class WorkoutListFragment : Fragment() { // Asegúrate que hereda de Fragment
         WorkoutListViewModelFactory(AppDatabase.getDatabase(requireContext().applicationContext).workoutDao())
     }
 
-    // --- onCreateView CON LA FIRMA CORRECTA Y COMPLETA ---
     override fun onCreateView(
-        inflater: LayoutInflater,    // <-- PARÁMETRO 1
-        container: ViewGroup?,       // <-- PARÁMETRO 2
-        savedInstanceState: Bundle?  // <-- PARÁMETRO 3
-    ): View {                        // <-- TIPO DE RETORNO
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         Log.d("WorkoutListFragment", "--- onCreateView START ---")
-        // Usamos inflater y container aquí
         _binding = FragmentWorkoutListBinding.inflate(inflater, container, false)
         Log.d("WorkoutListFragment", "--- onCreateView END ---")
-        // Devolvemos la vista raíz
         return binding.root
     }
-    // --- FIN onCreateView ---
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Log.d("WorkoutListFragment", "--- onViewCreated START ---")
         super.onViewCreated(view, savedInstanceState)
 
-        // Llamamos a configurar RecyclerView (que ahora crea el adapter con las 2 lambdas)
         setupRecyclerView()
-        // Empezamos a observar la lista desde el ViewModel
-        observeWorkoutList()
+        observeWorkoutList() // Cambiado nombre aquí
 
-        // Listener del FAB (llama al ViewModel)
         binding.fabNewWorkout.setOnClickListener {
             Log.d("WorkoutListFragment", ">>> CLIC EN FAB detectado!")
             viewModel.insertNewWorkout()
@@ -61,9 +53,7 @@ class WorkoutListFragment : Fragment() { // Asegúrate que hereda de Fragment
     }
 
     private fun setupRecyclerView() {
-        // Pasamos las dos lambdas al crear el adapter:
         workoutAdapter = WorkoutAdapter(
-            // 1. Lambda para click en el item (navegar)
             onItemClick = { workout ->
                 Log.d("WorkoutListFragment", "Item Clicked - Workout ID: ${workout.id}")
                 try {
@@ -75,12 +65,11 @@ class WorkoutListFragment : Fragment() { // Asegúrate que hereda de Fragment
                     Toast.makeText(context, "Error al navegar", Toast.LENGTH_SHORT).show()
                 }
             },
-            // 2. Lambda para click en el botón borrar del item
             onDeleteClick = { workout ->
                 Log.d("WorkoutListFragment", "Delete Clicked - Workout ID: ${workout.id}")
-                showDeleteWorkoutConfirmationDialog(workout) // Llamamos al diálogo de confirmación
+                showDeleteWorkoutConfirmationDialog(workout)
             }
-        ) // Fin creación adapter
+        )
 
         binding.recyclerViewWorkouts.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -89,14 +78,11 @@ class WorkoutListFragment : Fragment() { // Asegúrate que hereda de Fragment
         Log.d("WorkoutListFragment", "RecyclerView setup complete.")
     }
 
-    // Función para mostrar confirmación de borrado de Workout
     private fun showDeleteWorkoutConfirmationDialog(workoutToDelete: Workout) {
         AlertDialog.Builder(requireContext())
             .setTitle("Confirmar Borrado")
-            // Advertimos que se borrarán también las series
             .setMessage("¿Seguro que quieres borrar este workout (ID: ${workoutToDelete.id}) y todas sus series asociadas?")
             .setPositiveButton("Borrar") { _, _ ->
-                // Si confirma, llamamos al ViewModel para borrar
                 viewModel.deleteWorkout(workoutToDelete)
                 Toast.makeText(context, "Workout borrado", Toast.LENGTH_SHORT).show()
             }
@@ -104,26 +90,38 @@ class WorkoutListFragment : Fragment() { // Asegúrate que hereda de Fragment
             .show()
     }
 
-    // Función para observar la lista desde el ViewModel
+    // Función para observar la lista desde el ViewModel y gestionar visibilidad
     private fun observeWorkoutList() {
         Log.d("WorkoutListFragment", "Starting to observe ViewModel workouts...")
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.allWorkouts.collectLatest { workoutsList ->
                     Log.d("WorkoutListFragment", "Workout list updated from ViewModel. Count: ${workoutsList.size}")
-                    // Asegurarnos que el adapter está inicializado
+
+                    // --- Lógica de Visibilidad ---
+                    if (workoutsList.isEmpty()) {
+                        binding.recyclerViewWorkouts.visibility = View.GONE // Oculta RecyclerView
+                        binding.textViewEmptyList.visibility = View.VISIBLE // Muestra mensaje
+                    } else {
+                        binding.recyclerViewWorkouts.visibility = View.VISIBLE // Muestra RecyclerView
+                        binding.textViewEmptyList.visibility = View.GONE // Oculta mensaje
+                    }
+                    // --- Fin Lógica de Visibilidad ---
+
                     if(::workoutAdapter.isInitialized){
                         workoutAdapter.submitList(workoutsList)
+                    } else {
+                        Log.e("WorkoutListFragment", "WorkoutAdapter not initialized when trying to submit list.")
                     }
-                }
-            }
-        }
-    }
+                } // Fin collectLatest
+            } // Fin repeatOnLifecycle
+        } // Fin launch
+    } // Fin observeWorkoutList
 
-    // Se llama cuando la vista se destruye
+
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null // Importante para evitar fugas de memoria en Fragments
+        _binding = null
         Log.d("WorkoutListFragment", "View destroyed, binding set to null.")
     }
-} // <-- Llave de cierre final de la clase
+}

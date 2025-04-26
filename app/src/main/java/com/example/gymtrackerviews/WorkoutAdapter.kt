@@ -5,30 +5,27 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.gymtrackerviews.databinding.ItemWorkoutBinding // Binding para item_workout.xml
+import com.example.gymtrackerviews.databinding.ItemWorkoutBinding // Tu ViewBinding
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-// 👇 1. Añadimos OTRA lambda al constructor para el click de borrar
 class WorkoutAdapter(
-    private val onItemClick: (Workout) -> Unit, // Lambda para click en el item (navegar)
-    private val onDeleteClick: (Workout) -> Unit // Lambda para click en el botón borrar
+    private val onItemClick: (Workout) -> Unit,
+    private val onDeleteClick: (Workout) -> Unit
 ) : ListAdapter<Workout, WorkoutAdapter.WorkoutViewHolder>(WorkoutDiffCallback()) {
 
     inner class WorkoutViewHolder(private val binding: ItemWorkoutBinding) : RecyclerView.ViewHolder(binding.root) {
         private var currentWorkout: Workout? = null
 
         init {
-            // Listener para TODA la fila (para navegar)
             binding.root.setOnClickListener {
                 currentWorkout?.let { workout ->
-                    onItemClick(workout) // Llama a la lambda de navegación
+                    onItemClick(workout)
                 }
             }
-            // Listener para el BOTÓN de borrar
             binding.buttonDeleteWorkout.setOnClickListener {
                 currentWorkout?.let { workout ->
-                    onDeleteClick(workout) // Llama a la lambda de borrado
+                    onDeleteClick(workout)
                 }
             }
         }
@@ -36,14 +33,12 @@ class WorkoutAdapter(
         fun bind(workout: Workout) {
             currentWorkout = workout
             binding.textViewWorkoutId.text = "Workout ID: ${workout.id}"
-            // Usamos el binding generado para el layout item_workout.xml
             val dateFormat = SimpleDateFormat("dd MMM yy, HH:mm:ss", Locale.getDefault())
             binding.textViewWorkoutStartTime.text = "Inicio: ${dateFormat.format(workout.startTime)}"
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkoutViewHolder {
-        // Asegúrate que usa ItemWorkoutBinding
         val binding = ItemWorkoutBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return WorkoutViewHolder(binding)
     }
@@ -53,7 +48,6 @@ class WorkoutAdapter(
     }
 }
 
-// DiffUtil Callback (sin cambios)
 class WorkoutDiffCallback : DiffUtil.ItemCallback<Workout>() {
     override fun areItemsTheSame(oldItem: Workout, newItem: Workout): Boolean {
         return oldItem.id == newItem.id

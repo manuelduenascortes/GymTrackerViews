@@ -10,32 +10,34 @@
     android:paddingBottom="8dp"
     android:clickable="true"
     android:focusable="true"
-    android:background="?android:attr/selectableItemBackground"> <LinearLayout
-    android:id="@+id/workoutInfoLayout"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toStartOf="@+id/buttonDeleteWorkout"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
-    android:layout_marginEnd="8dp">
+    android:background="?android:attr/selectableItemBackground">
 
-    <TextView
-        android:id="@+id/textViewWorkoutId"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/workoutInfoLayout"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceCaption"
-        tools:text="Workout ID: ?" />
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/buttonDeleteWorkout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="8dp">
 
-    <TextView
-        android:id="@+id/textViewWorkoutStartTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textAppearance="?attr/textAppearanceBody1"
-        tools:text="Inicio: ?" />
-</LinearLayout>
+        <TextView
+            android:id="@+id/textViewWorkoutId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceCaption"
+            tools:text="Workout ID: ?" />
+
+        <TextView
+            android:id="@+id/textViewWorkoutStartTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBody1"
+            tools:text="Inicio: ?" />
+    </LinearLayout>
 
     <ImageButton
         android:id="@+id/buttonDeleteWorkout"

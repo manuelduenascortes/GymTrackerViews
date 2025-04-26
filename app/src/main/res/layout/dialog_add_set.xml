@@ -14,18 +14,24 @@
         android:layout_height="wrap_content"
         android:minHeight="48dp"
         android:hint="Nombre del Ejercicio"
-        android:inputType="textCapWords" /> <EditText
-    android:id="@+id/editTextReps"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:minHeight="48dp"
-    android:layout_marginTop="16dp"
-    android:hint="Repeticiones"
-    android:inputType="number" /> <EditText
-    android:id="@+id/editTextWeight"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:minHeight="48dp"
-    android:layout_marginTop="16dp"
-    android:hint="Peso (kg)"
-    android:inputType="numberDecimal" /> </LinearLayout>
+        android:inputType="textCapWords" />
+
+    <EditText
+        android:id="@+id/editTextReps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:layout_marginTop="16dp"
+        android:hint="Repeticiones"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/editTextWeight"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:layout_marginTop="16dp"
+        android:hint="Peso (kg)"
+        android:inputType="numberDecimal" />
+
+</LinearLayout>

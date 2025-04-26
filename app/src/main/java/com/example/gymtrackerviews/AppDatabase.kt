@@ -1,4 +1,4 @@
-package com.example.gymtrackerviews // Tu paquete
+package com.example.gymtrackerviews // Asegúrate que coincide con tu paquete
 
 import android.content.Context
 import androidx.room.Database
@@ -8,19 +8,16 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import java.util.Date
 
+// Convertidor (sin cambios)
 class DateConverter {
     @TypeConverter
-    fun fromTimestamp(value: Long?): Date? {
-        return value?.let { Date(it) }
-    }
-
+    fun fromTimestamp(value: Long?): Date? { return value?.let { Date(it) } }
     @TypeConverter
-    fun dateToTimestamp(date: Date?): Long? {
-        return date?.time
-    }
+    fun dateToTimestamp(date: Date?): Long? { return date?.time }
 }
 
-@Database(entities = [Workout::class, WorkoutSet::class], version = 2, exportSchema = false)
+// Clase Database - Verifica la lista 'entities'
+@Database(entities = [Workout::class, WorkoutSet::class], version = 2, exportSchema = false) // <-- ¿Está WorkoutSet::class aquí?
 @TypeConverters(DateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 
@@ -38,7 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "gym_tracker_database"
                 )
-                    .fallbackToDestructiveMigration() // Ok para desarrollo
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

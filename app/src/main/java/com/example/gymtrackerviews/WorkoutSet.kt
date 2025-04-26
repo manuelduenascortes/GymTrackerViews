@@ -1,4 +1,4 @@
-package com.example.gymtrackerviews // Tu paquete
+package com.example.gymtrackerviews // Asegúrate que coincide con tu paquete
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

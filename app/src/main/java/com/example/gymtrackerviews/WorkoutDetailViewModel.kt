@@ -1,6 +1,6 @@
 package com.example.gymtrackerviews // Tu paquete
 
-import android.util.Log // <--- ¡¡IMPORT AÑADIDO!! ---
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -47,7 +46,6 @@ class WorkoutDetailViewModel(
             try {
                 workoutSetDao.insertSet(newSet)
             } catch (e: Exception) {
-                // Ahora sí reconoce Log.e
                 Log.e("WorkoutDetailViewModel", "Error inserting set", e)
             }
         }
@@ -58,8 +56,22 @@ class WorkoutDetailViewModel(
             try {
                 workoutSetDao.deleteSet(set)
             } catch (e: Exception) {
-                // Ahora sí reconoce Log.e
                 Log.e("WorkoutDetailViewModel", "Error deleting set", e)
+            }
+        }
+    }
+
+    fun updateSet(set: WorkoutSet) {
+        viewModelScope.launch {
+            try {
+                // Asegurarse que el workoutId es correcto (no debería cambiar al editar set)
+                if (set.workoutId == workoutId) {
+                    workoutSetDao.updateSet(set)
+                } else {
+                    Log.e("WorkoutDetailViewModel", "Attempted to update set with wrong workoutId!")
+                }
+            } catch (e: Exception) {
+                Log.e("WorkoutDetailViewModel", "Error updating set", e)
             }
         }
     }

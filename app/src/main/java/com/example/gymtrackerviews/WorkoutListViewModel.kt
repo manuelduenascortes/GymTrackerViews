@@ -1,6 +1,6 @@
 package com.example.gymtrackerviews // Tu paquete
 
-import android.util.Log // Asegúrate que está importado Log
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -30,21 +30,17 @@ class WorkoutListViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
         }
     }
 
-    // 👇 --- FUNCIÓN AÑADIDA --- 👇
     fun deleteWorkout(workout: Workout) {
         viewModelScope.launch {
             try {
                 workoutDao.deleteWorkout(workout)
             } catch (e: Exception) {
                 Log.e("WorkoutListViewModel", "Error deleting workout", e)
-                // Podríamos exponer un estado de error si quisiéramos
             }
         }
     }
-    // 👆 --- FIN FUNCIÓN AÑADIDA --- 👆
 }
 
-// --- Factory (sin cambios) ---
 class WorkoutListViewModelFactory(private val workoutDao: WorkoutDao) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(WorkoutListViewModel::class.java)) {

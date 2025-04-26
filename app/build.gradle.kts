@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt") // Plugin para procesar anotaciones de Room
     id("androidx.navigation.safeargs.kotlin") // Plugin para Safe Args
+    // id("com.google.devtools.ksp") // Descomentar si cambias a KSP en lugar de Kapt para Room
 }
 
 android {
@@ -38,10 +39,21 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    // Necesario si usas Kapt o KSP
+    kapt {
+        arguments {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+    }
+    /* // Alternativa si usas KSP en lugar de Kapt para Room
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
+    */
 }
 
 dependencies {
-    // Variable para versiones (ajústalas si es necesario a las últimas estables)
+    // Definimos variables para versiones (ajústalas si es necesario)
     val room_version = "2.6.1"
     val lifecycle_version = "2.7.0"
     val coroutines_version = "1.7.3"
@@ -56,20 +68,24 @@ dependencies {
     implementation("androidx.appcompat:appcompat:$appcompat_version")
     implementation("com.google.android.material:material:$material_version")
     implementation("androidx.constraintlayout:constraintlayout:$constraint_layout_version")
+    implementation("androidx.fragment:fragment-ktx:1.6.2") // Necesaria para 'by viewModels'
 
     // Room (Base de datos)
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version") // Extensiones Kotlin (Flow, suspend)
-    kapt("androidx.room:room-compiler:$room_version")     // Procesador de anotaciones
+    kapt("androidx.room:room-compiler:$room_version")     // Procesador de anotaciones con Kapt
+    // implementation("androidx.room:room-compiler-processing:$room_version") // Descomentar si usas KSP
+    // ksp("androidx.room:room-compiler:$room_version") // Descomentar si usas KSP
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version")
 
-    // Lifecycle (ViewModel, LiveData, LifecycleScope)
+    // Lifecycle (ViewModel, LiveData, LifecycleScope, repeatOnLifecycle)
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version") // Para ViewModels (futuro)
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")   // Para LiveData (alternativa a Flow)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycle_version") // Para SavedStateHandle
 
     // Navigation Component
     implementation("androidx.navigation:navigation-fragment-ktx:$navigation_version")
