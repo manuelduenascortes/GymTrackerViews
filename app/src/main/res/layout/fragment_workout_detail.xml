@@ -37,25 +37,31 @@
         android:layout_marginTop="4dp"
         android:text="Finalizado: ?"
         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-        android:textColor="?android:attr/textColorSecondary" android:visibility="gone" app:layout_constraintEnd_toEndOf="@+id/textViewDetailStartTime"
+        android:textColor="?android:attr/textColorSecondary"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@+id/textViewDetailStartTime"
         app:layout_constraintStart_toStartOf="@+id/textViewDetailStartTime"
         app:layout_constraintTop_toBottomOf="@+id/textViewDetailStartTime"
-        tools:visibility="visible"/> <androidx.recyclerview.widget.RecyclerView
-    android:id="@+id/recyclerViewSets"
-    android:layout_width="0dp"
-    android:layout_height="0dp"
-    android:layout_marginTop="16dp"
-    android:layout_marginBottom="8dp"
-    app:layout_constraintBottom_toTopOf="@+id/buttonFinishWorkout"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toBottomOf="@+id/textViewDetailEndTime" tools:listitem="@layout/item_workout_set"/>
+        tools:visibility="visible"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewSets"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/editTextWorkoutNotes" app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDetailEndTime"
+        tools:listitem="@layout/item_workout_set"/>
 
     <TextView
         android:id="@+id/textViewEmptySets"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:gravity="center"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
         android:text="@string/no_sets_message"
         android:textAppearance="?attr/textAppearanceBody1"
         android:visibility="gone"
@@ -63,9 +69,22 @@
         app:layout_constraintEnd_toEndOf="@+id/recyclerViewSets"
         app:layout_constraintStart_toStartOf="@+id/recyclerViewSets"
         app:layout_constraintTop_toTopOf="@+id/recyclerViewSets"
-        app:layout_constraintVertical_bias="0.3"
         tools:visibility="gone"/>
 
+    <EditText
+        android:id="@+id/editTextWorkoutNotes"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:hint="Añadir notas sobre el workout..."
+        android:inputType="textMultiLine|textCapSentences"
+        android:minHeight="48dp"
+        android:gravity="top|start"
+        app:layout_constraintBottom_toTopOf="@+id/buttonFinishWorkout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/buttonFinishWorkout"

@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map // Import map si no estaba
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -24,38 +24,29 @@ class WorkoutDetailViewModel(
     // --- Propiedades ---
     val workoutId: Long = savedStateHandle.get<Long>("workoutId") ?: 0L
 
-    // StateFlow para los detalles del Workout actual
     val workoutDetails: StateFlow<Workout?> = workoutDao.getWorkoutFlowById(workoutId)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = null // Inicia como null hasta que se cargue
+            initialValue = null
         )
 
-    // StateFlow para la lista de series de este workout
     val workoutSets: StateFlow<List<WorkoutSet>> = workoutSetDao.getSetsForWorkout(workoutId)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyList() // Inicia como lista vacía
+            initialValue = emptyList()
         )
 
-    // --- StateFlow para saber si el workout ha terminado ---
-    // 👇 ASEGÚRATE DE QUE ESTA PROPIEDAD ESTÁ DEFINIDA CORRECTAMENTE 👇
-    val isWorkoutFinished: StateFlow<Boolean> = workoutDetails // Se basa en workoutDetails
-        .map { currentWorkout ->
-            // Emite true si el workout existe y su endTime NO es null
-            currentWorkout?.endTime != null
-        }
+    val isWorkoutFinished: StateFlow<Boolean> = workoutDetails
+        .map { currentWorkout -> currentWorkout?.endTime != null }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = false // Asumimos que no está terminado al principio
+            initialValue = false
         )
-    // 👆 --- FIN isWorkoutFinished --- 👆
 
-
-    // --- Funciones (Insert, Delete, Update Set, Finish Workout) ---
+    // --- Funciones ---
     fun insertSet(exerciseName: String, reps: Int, weight: Double) {
         val newSet = WorkoutSet(
             workoutId = workoutId, exerciseName = exerciseName, repetitions = reps, weight = weight
@@ -92,6 +83,26 @@ class WorkoutDetailViewModel(
             } else { Log.w("WorkoutDetailViewModel", "Workout already finished or not loaded.") }
         }
     }
+
+    // --- Función para guardar notas (llamada desde el Fragment) ---
+    // Es pública (por defecto) y está definida aquí.
+    fun saveNotes(notes: String?) {
+        val currentWorkout = workoutDetails.value
+        if (currentWorkout != null) {
+            val updatedWorkout = currentWorkout.copy(notes = notes?.trim())
+            viewModelScope.launch {
+                try {
+                    workoutDao.updateWorkout(updatedWorkout)
+                    Log.d("WorkoutDetailViewModel", "Notes saved for workout ID: ${currentWorkout.id}")
+                } catch (e: Exception) {
+                    Log.e("WorkoutDetailViewModel", "Error saving notes", e)
+                }
+            }
+        } else {
+            Log.w("WorkoutDetailViewModel", "Cannot save notes, currentWorkout is null.")
+        }
+    }
+
 
     // --- Factory dentro del companion object ---
     companion object {
