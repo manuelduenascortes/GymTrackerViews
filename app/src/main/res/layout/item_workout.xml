@@ -6,8 +6,8 @@
     android:layout_height="wrap_content"
     android:paddingStart="16dp"
     android:paddingEnd="8dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp"
     android:clickable="true"
     android:focusable="true"
     android:background="?android:attr/selectableItemBackground">
@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceCaption"
-            tools:text="Workout ID: ?" />
+            tools:text="Workout ID: 10" />
 
         <TextView
             android:id="@+id/textViewWorkoutStartTime"
@@ -36,7 +36,17 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceBody1"
-            tools:text="Inicio: ?" />
+            android:textStyle="bold"
+            tools:text="Inicio: 26 Abr 25, 21:22:59" />
+
+        <TextView
+            android:id="@+id/textViewWorkoutStatusDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?android:attr/textColorSecondary"
+            tools:text="Duración: 1h 15m" />
     </LinearLayout>
 
     <ImageButton
@@ -45,6 +55,8 @@
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Borrar workout"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
         android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

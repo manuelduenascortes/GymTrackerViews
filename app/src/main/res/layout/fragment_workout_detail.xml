@@ -30,17 +30,26 @@
         app:layout_constraintStart_toStartOf="@+id/textViewDetailTitle"
         app:layout_constraintTop_toBottomOf="@+id/textViewDetailTitle" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewSets"
+    <TextView
+        android:id="@+id/textViewDetailEndTime"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/buttonFinishWorkout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Finalizado: ?"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+        android:textColor="?android:attr/textColorSecondary" android:visibility="gone" app:layout_constraintEnd_toEndOf="@+id/textViewDetailStartTime"
+        app:layout_constraintStart_toStartOf="@+id/textViewDetailStartTime"
         app:layout_constraintTop_toBottomOf="@+id/textViewDetailStartTime"
-        tools:listitem="@layout/item_workout_set"/>
+        tools:visibility="visible"/> <androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/recyclerViewSets"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_marginTop="16dp"
+    android:layout_marginBottom="8dp"
+    app:layout_constraintBottom_toTopOf="@+id/buttonFinishWorkout"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/textViewDetailEndTime" tools:listitem="@layout/item_workout_set"/>
 
     <TextView
         android:id="@+id/textViewEmptySets"
@@ -55,19 +64,22 @@
         app:layout_constraintStart_toStartOf="@+id/recyclerViewSets"
         app:layout_constraintTop_toTopOf="@+id/recyclerViewSets"
         app:layout_constraintVertical_bias="0.3"
-        tools:visibility="gone"/> <Button
-    android:id="@+id/buttonFinishWorkout"
-    style="@style/Widget.Material3.Button.OutlinedButton"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
-    android:layout_marginBottom="8dp"
-    android:text="Finalizar Workout"
-    android:visibility="visible"
-    app:layout_constraintBottom_toTopOf="@+id/buttonAddSet"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent" />
+        tools:visibility="gone"/>
+
+
+    <Button
+        android:id="@+id/buttonFinishWorkout"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="Finalizar Workout"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/buttonAddSet"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/buttonAddSet"

@@ -17,11 +17,13 @@
             android:id="@+id/action_workoutListFragment_to_workoutDetailFragment"
             app:destination="@id/workoutDetailFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/newWorkoutFragment"
         android:name="com.example.gymtrackerviews.NewWorkoutFragment"
         android:label="Nuevo Entrenamiento"
         tools:layout="@layout/fragment_new_workout" />
+
     <fragment
         android:id="@+id/workoutDetailFragment"
         android:name="com.example.gymtrackerviews.WorkoutDetailFragment"
@@ -31,4 +33,5 @@
             android:name="workoutId"
             app:argType="long" />
     </fragment>
+
 </navigation>
