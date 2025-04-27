@@ -31,11 +31,15 @@ class WorkoutDetailViewModel(
             initialValue = null
         )
 
-    val workoutSets: StateFlow<List<WorkoutSet>> = workoutSetDao.getSetsForWorkout(workoutId)
+    val groupedWorkoutSets: StateFlow<Map<String, List<WorkoutSet>>> = workoutSetDao.getSetsForWorkout(workoutId)
+        .map { setsList ->
+            // Usamos groupBy para agrupar la lista de WorkoutSet por su exerciseName
+            setsList.groupBy { it.exerciseName }
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyList()
+            initialValue = emptyMap() // Valor inicial es un mapa vacío
         )
 
     val isWorkoutFinished: StateFlow<Boolean> = workoutDetails
