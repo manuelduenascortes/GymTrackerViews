@@ -35,6 +35,7 @@ class WorkoutDetailFragment : Fragment() {
     private val viewModel: WorkoutDetailViewModel by viewModels {
         WorkoutDetailViewModel.Factory(database.workoutDao(), database.workoutSetDao())
     }
+    // Usamos el NUEVO adapter
     private lateinit var workoutDetailAdapter: WorkoutDetailAdapter
 
     override fun onCreateView(
@@ -53,24 +54,26 @@ class WorkoutDetailFragment : Fragment() {
 
         binding.textViewDetailTitle.text = "Detalles del Workout ID: ${viewModel.workoutId}"
 
-        setupSetsRecyclerView() // Configura adapter y RV
-        observeViewModelData() // Empieza a observar
+        setupSetsRecyclerView() // Configura el NUEVO adapter
+        observeViewModelData() // Observa los datos (incluyendo el mapa agrupado)
 
         binding.buttonAddSet.setOnClickListener {
-            val isEnabled = binding.buttonAddSet.isEnabled
-            Log.d("WorkoutDetailFragment", ">>> Add Set button CLICKED. Is Enabled: $isEnabled")
-            if (isEnabled) {
+            Log.d("WorkoutDetailFragment", "Add Set button clicked")
+            if (binding.buttonAddSet.isEnabled) {
                 showAddOrEditSetDialog(null)
             } else {
-                Log.w("WorkoutDetailFragment", "Add Set button clicked but it was disabled.")
                 Toast.makeText(context, "El workout ya está finalizado.", Toast.LENGTH_SHORT).show()
             }
         }
 
+        // Listener botón Finalizar Workout (Llama a finishWorkout con notas)
         binding.buttonFinishWorkout.setOnClickListener {
             Log.d("WorkoutDetailFragment", "Finish Workout button clicked for workout ID: ${viewModel.workoutId}")
             if (binding.buttonFinishWorkout.isVisible) {
-                viewModel.finishWorkout()
+                // Obtenemos las notas ACTUALES del EditText
+                val currentNotes = binding.editTextWorkoutNotes.text.toString()
+                // Llamamos a finishWorkout PASANDO las notas
+                viewModel.finishWorkout(currentNotes)
                 Toast.makeText(context, "Workout finalizado", Toast.LENGTH_SHORT).show()
             }
         }
@@ -82,7 +85,7 @@ class WorkoutDetailFragment : Fragment() {
         Log.d("WorkoutDetailFragment", "Starting to observe ViewModel data")
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Observar detalles del Workout (fechas y notas)
+                // 1. Observar detalles del Workout (fechas y notas)
                 launch {
                     viewModel.workoutDetails.collectLatest { workout ->
                         if (workout != null) {
@@ -92,7 +95,10 @@ class WorkoutDetailFragment : Fragment() {
                             binding.textViewDetailEndTime.isVisible = workout.endTime != null
                             workout.endTime?.let { binding.textViewDetailEndTime.text = "Finalizado: ${dateFormat.format(it)}" }
                             val notes = workout.notes
+                            // Solo actualizamos si el texto es diferente y binding no es null
+                            // y si el campo está habilitado
                             if (_binding != null && binding.editTextWorkoutNotes.isEnabled && binding.editTextWorkoutNotes.text.toString() != (notes ?: "")) {
+                                Log.d("WorkoutDetailFragment", "Updating notes EditText: $notes")
                                 binding.editTextWorkoutNotes.setText(notes ?: "")
                             }
                         } else {
@@ -102,29 +108,41 @@ class WorkoutDetailFragment : Fragment() {
                         }
                     }
                 }
-                // Observar lista de Series
+                // 2. Observar el MAPA AGRUPADO y crear la lista plana para el adapter
                 launch {
+                    // Observamos groupedWorkoutSets
                     viewModel.groupedWorkoutSets.collectLatest { groupedSetsMap ->
                         Log.d("WorkoutDetailFragment", "Grouped sets map updated. Exercise count: ${groupedSetsMap.size}")
                         val detailListItems = mutableListOf<WorkoutDetailListItem>()
+                        // Ordenar por nombre de ejercicio (opcional)
                         groupedSetsMap.toSortedMap().forEach { (exerciseName, sets) ->
                             detailListItems.add(WorkoutDetailListItem.HeaderItem(exerciseName))
+                            // Ordenar series por timestamp (opcional, DAO ya lo hace)
                             sets.sortedBy { it.timestamp }.forEach { workoutSet ->
                                 detailListItems.add(WorkoutDetailListItem.SetItem(workoutSet))
                             }
                         }
+
                         val isEmpty = detailListItems.isEmpty()
                         binding.recyclerViewSets.isVisible = !isEmpty
                         binding.textViewEmptySets.isVisible = isEmpty
+                        Log.d("WorkoutDetailFragment", "Flat list created. Item count: ${detailListItems.size}. Is empty: $isEmpty")
+
+                        // Usamos la variable correcta del adapter
                         if(::workoutDetailAdapter.isInitialized) {
-                            workoutDetailAdapter.submitList(detailListItems)
+                            workoutDetailAdapter.submitList(detailListItems) // Enviamos lista plana
+                            Log.d("WorkoutDetailFragment", "Submitted flat list to adapter.")
+                        } else {
+                            Log.e("WorkoutDetailFragment", "WorkoutDetailAdapter not initialized!")
                         }
-                    }
-                }
-                // Observar estado 'finalizado'
+                    } // Fin collectLatest groupedWorkoutSets
+                } // Fin launch series
+
+                // 3. Observar estado 'finalizado'
                 launch {
                     viewModel.isWorkoutFinished.collectLatest { isFinished ->
                         Log.d("WorkoutDetailFragment", "Observed isWorkoutFinished state: $isFinished")
+                        // Asegurarse que binding no es null antes de modificar vistas
                         _binding?.let { safeBinding ->
                             safeBinding.buttonFinishWorkout.isVisible = !isFinished
                             safeBinding.buttonAddSet.isEnabled = !isFinished
@@ -137,25 +155,25 @@ class WorkoutDetailFragment : Fragment() {
         } // Fin launch principal
     }
 
-    // Configura el RecyclerView
+    // Configura el RecyclerView usando el NUEVO WorkoutDetailAdapter
     private fun setupSetsRecyclerView() {
-        // 👇 --- CORRECCIÓN: Usar los nombres de parámetro correctos del constructor --- 👇
+        // Instanciamos el NUEVO adapter
         workoutDetailAdapter = WorkoutDetailAdapter(
-            onSetClick = { setToEdit -> // Cambiado de onItemClick a onSetClick
+            onSetClick = { setToEdit ->
                 Log.d("WorkoutDetailFragment", "Set Item Clicked - Set ID: ${setToEdit.id}")
                 if (binding.buttonAddSet.isEnabled) { showAddOrEditSetDialog(setToEdit) }
                 else { Toast.makeText(context, "Workout finalizado, no se puede editar.", Toast.LENGTH_SHORT).show() }
             },
-            onSetDeleteClick = { setToDelete -> // Cambiado de onDeleteClick a onSetDeleteClick
+            onSetDeleteClick = { setToDelete ->
                 Log.d("WorkoutDetailFragment", "Set Delete Clicked - Set ID: ${setToDelete.id}")
                 if (binding.buttonAddSet.isEnabled) { showDeleteConfirmationDialog(setToDelete) }
                 else { Toast.makeText(context, "Workout finalizado, no se puede borrar.", Toast.LENGTH_SHORT).show() }
             }
         )
-        // 👆 --- FIN CORRECCIÓN --- 👆
+        // Aplicamos config al RecyclerView
         binding.recyclerViewSets.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = workoutDetailAdapter
+            adapter = workoutDetailAdapter // Asignamos el NUEVO adapter
         }
         Log.d("WorkoutDetailFragment", "Sets RecyclerView setup complete with WorkoutDetailAdapter.")
     }
@@ -195,6 +213,14 @@ class WorkoutDetailFragment : Fragment() {
             try {
                 val reps = repsString.toInt()
                 val weight = weightString.toDouble()
+                if (reps <= 0) {
+                    Toast.makeText(context, "Las repeticiones deben ser mayor que cero", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                if (weight < 0) {
+                    Toast.makeText(context, "El peso no puede ser negativo", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
                 if (isEditing && existingSet != null) {
                     val updatedSet = existingSet.copy(exerciseName = exerciseName, repetitions = reps, weight = weight)
                     viewModel.updateSet(updatedSet)
@@ -239,7 +265,7 @@ class WorkoutDetailFragment : Fragment() {
             if (binding.editTextWorkoutNotes.isEnabled) {
                 val notesFromEditText = binding.editTextWorkoutNotes.text.toString()
                 Log.d("WorkoutDetailFragment", "Saving notes: '$notesFromEditText'")
-                viewModel.saveNotes(notesFromEditText)
+                viewModel.saveNotes(notesFromEditText) // Llama al ViewModel
             } else {
                 Log.d("WorkoutDetailFragment", "Notes EditText is disabled, skipping save.")
             }
@@ -248,21 +274,19 @@ class WorkoutDetailFragment : Fragment() {
         }
     }
 
-    // --- onPause ---
+    // --- onPause con llamada a super ---
     override fun onPause() {
-        super.onPause() // Llamar a super primero
+        super.onPause() // <-- LLAMADA A SUPER PRIMERO Y OBLIGATORIA ---
         Log.d("WorkoutDetailFragment", "--- onPause START --- Attempting to call saveNotes...")
         saveNotes()
         Log.d("WorkoutDetailFragment", "--- onPause END --- Notes potentially saved.")
     }
-    // --- FIN onPause ---
 
-    // --- onDestroyView ---
+    // --- onDestroyView con llamada a super ---
     override fun onDestroyView() {
-        super.onDestroyView() // Llamada a super OBLIGATORIA
-        _binding = null // Limpiamos el binding
+        super.onDestroyView() // <-- LLAMADA A SUPER PRIMERO Y OBLIGATORIA ---
+        _binding = null
         Log.d("WorkoutDetailFragment", "--- onDestroyView --- Binding set to null.")
     }
-    // --- FIN onDestroyView ---
 
 } // --- FIN de la clase WorkoutDetailFragment ---

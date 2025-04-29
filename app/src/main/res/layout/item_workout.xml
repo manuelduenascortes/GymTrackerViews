@@ -8,8 +8,11 @@
     android:layout_marginTop="4dp"
     android:layout_marginEnd="8dp"
     android:layout_marginBottom="4dp"
-    app:cardElevation="0dp" app:cardCornerRadius="8dp"
-    app:strokeWidth="1dp" app:strokeColor="?attr/colorOutline" android:clickable="true"
+    app:cardElevation="0dp"
+    app:cardCornerRadius="8dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="?attr/colorOutline"
+    android:clickable="true"
     android:focusable="true"
     android:foreground="?android:attr/selectableItemBackground">
 
@@ -50,6 +53,14 @@
                 tools:text="Duración: 1h 15m" />
 
             <TextView
+                android:id="@+id/textViewSetCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?android:attr/textColorSecondary"
+                tools:text="Series: 15" />
+            <TextView
                 android:id="@+id/textViewWorkoutNotesPreview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -58,7 +69,7 @@
                 android:maxLines="2"
                 android:ellipsize="end"
                 android:visibility="gone"
-                tools:text="Notas: Buenas sensaciones hoy, subiendo pesos en press banca..."
+                tools:text="Notas: Buenas sensaciones hoy..."
                 tools:visibility="visible"/>
 
             <TextView
@@ -67,8 +78,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textAppearance="?attr/textAppearanceCaption"
-                android:visibility="gone" tools:text="Workout ID: 10"
-                tools:visibility="visible"/> </LinearLayout>
+                android:visibility="gone"
+                tools:text="Workout ID: 10"
+                tools:visibility="visible"/>
+        </LinearLayout>
 
         <ImageButton
             android:id="@+id/buttonDeleteWorkout"

@@ -24,6 +24,7 @@ class WorkoutDetailViewModel(
     // --- Propiedades ---
     val workoutId: Long = savedStateHandle.get<Long>("workoutId") ?: 0L
 
+    // StateFlow para los detalles del Workout actual
     val workoutDetails: StateFlow<Workout?> = workoutDao.getWorkoutFlowById(workoutId)
         .stateIn(
             scope = viewModelScope,
@@ -31,17 +32,18 @@ class WorkoutDetailViewModel(
             initialValue = null
         )
 
+    // StateFlow con el Mapa Agrupado de Series
     val groupedWorkoutSets: StateFlow<Map<String, List<WorkoutSet>>> = workoutSetDao.getSetsForWorkout(workoutId)
         .map { setsList ->
-            // Usamos groupBy para agrupar la lista de WorkoutSet por su exerciseName
-            setsList.groupBy { it.exerciseName }
+            setsList.groupBy { it.exerciseName } // Agrupa por nombre
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyMap() // Valor inicial es un mapa vacío
+            initialValue = emptyMap() // Mapa vacío inicialmente
         )
 
+    // StateFlow para saber si el workout ha terminado
     val isWorkoutFinished: StateFlow<Boolean> = workoutDetails
         .map { currentWorkout -> currentWorkout?.endTime != null }
         .stateIn(
@@ -77,38 +79,50 @@ class WorkoutDetailViewModel(
         }
     }
 
-    fun finishWorkout() {
+    // Función finishWorkout que ACEPTA las notas
+    fun finishWorkout(currentNotes: String?) {
         viewModelScope.launch {
             val currentWorkout = workoutDetails.value
             if (currentWorkout != null && currentWorkout.endTime == null) {
-                val finishedWorkout = currentWorkout.copy(endTime = Date())
-                try { workoutDao.updateWorkout(finishedWorkout) }
-                catch (e: Exception) { Log.e("WorkoutDetailViewModel", "Error finishing workout", e) }
-            } else { Log.w("WorkoutDetailViewModel", "Workout already finished or not loaded.") }
+                val finishedWorkout = currentWorkout.copy(
+                    endTime = Date(),
+                    notes = currentNotes?.trim() // Guarda notas y hora de fin
+                )
+                try {
+                    workoutDao.updateWorkout(finishedWorkout) // Una sola actualización
+                    Log.d("WorkoutDetailViewModel", "Workout finished and notes updated.")
+                } catch (e: Exception) {
+                    Log.e("WorkoutDetailViewModel", "Error finishing workout", e)
+                }
+            } else {
+                Log.w("WorkoutDetailViewModel", "Workout already finished or not loaded.")
+            }
         }
     }
 
-    // --- Función para guardar notas (llamada desde el Fragment) ---
-    // Es pública (por defecto) y está definida aquí.
+    // Función saveNotes (llamada desde onPause)
     fun saveNotes(notes: String?) {
         val currentWorkout = workoutDetails.value
-        if (currentWorkout != null) {
-            val updatedWorkout = currentWorkout.copy(notes = notes?.trim())
-            viewModelScope.launch {
-                try {
-                    workoutDao.updateWorkout(updatedWorkout)
-                    Log.d("WorkoutDetailViewModel", "Notes saved for workout ID: ${currentWorkout.id}")
-                } catch (e: Exception) {
-                    Log.e("WorkoutDetailViewModel", "Error saving notes", e)
+        if (currentWorkout != null && currentWorkout.endTime == null) {
+            if (currentWorkout.notes != notes?.trim()) {
+                val updatedWorkout = currentWorkout.copy(notes = notes?.trim())
+                viewModelScope.launch {
+                    try {
+                        workoutDao.updateWorkout(updatedWorkout)
+                        Log.d("WorkoutDetailViewModel", "Notes saved via saveNotes for workout ID: ${currentWorkout.id}")
+                    } catch (e: Exception) {
+                        Log.e("WorkoutDetailViewModel", "Error saving notes via saveNotes", e)
+                    }
                 }
+            } else {
+                Log.d("WorkoutDetailViewModel", "Notes unchanged in saveNotes, skipping update.")
             }
         } else {
-            Log.w("WorkoutDetailViewModel", "Cannot save notes, currentWorkout is null.")
+            Log.w("WorkoutDetailViewModel", "Cannot save notes via saveNotes, workout finished or null.")
         }
     }
 
-
-    // --- Factory dentro del companion object ---
+    // --- Factory ---
     companion object {
         fun Factory(workoutDao: WorkoutDao, workoutSetDao: WorkoutSetDao): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {

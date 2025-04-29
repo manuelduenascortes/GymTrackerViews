@@ -12,13 +12,16 @@ import java.util.Date
 
 class WorkoutListViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
 
-    val allWorkouts: StateFlow<List<Workout>> = workoutDao.getAllWorkouts()
+    // 👇 --- StateFlow ahora contiene List<WorkoutSummary> --- 👇
+    val allWorkoutSummaries: StateFlow<List<WorkoutSummary>> = workoutDao.getAllWorkoutSummaries() // Llama a la nueva función del DAO
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyList()
+            initialValue = emptyList() // Valor inicial sigue siendo lista vacía
         )
+    // 👆 --- FIN StateFlow MODIFICADO --- 👆
 
+    // --- Funciones insert y delete usan el objeto Workout interno ---
     fun insertNewWorkout() {
         viewModelScope.launch {
             val newWorkout = Workout(startTime = Date())
@@ -30,17 +33,21 @@ class WorkoutListViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
         }
     }
 
-    fun deleteWorkout(workout: Workout) {
+    // Recibe WorkoutSummary pero solo necesita el Workout para borrar
+    fun deleteWorkout(workoutSummary: WorkoutSummary) {
         viewModelScope.launch {
             try {
-                workoutDao.deleteWorkout(workout)
+                // Pasamos solo el objeto workout interno al DAO
+                workoutDao.deleteWorkout(workoutSummary.workout)
             } catch (e: Exception) {
                 Log.e("WorkoutListViewModel", "Error deleting workout", e)
             }
         }
     }
-}
+    // --- Fin Funciones ---
+} // Fin Clase ViewModel
 
+// --- Factory (sin cambios) ---
 class WorkoutListViewModelFactory(private val workoutDao: WorkoutDao) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(WorkoutListViewModel::class.java)) {
