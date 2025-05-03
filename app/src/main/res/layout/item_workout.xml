@@ -60,6 +60,7 @@
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textColor="?android:attr/textColorSecondary"
                 tools:text="Series: 15" />
+
             <TextView
                 android:id="@+id/textViewWorkoutNotesPreview"
                 android:layout_width="match_parent"
@@ -95,8 +96,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/ic_menu_delete" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            app:srcCompat="@android:drawable/ic_menu_delete"
+            app:tint="?attr/colorOnSurface" /> </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>

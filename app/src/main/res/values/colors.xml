@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
+    <color name="primaryDark">#FF6200EE</color> <color name="primaryVariantDark">#FF3700B3</color> <color name="onPrimaryDark">#FFFFFFFF</color> <color name="secondaryDark">#FF03DAC6</color> <color name="secondaryVariantDark">#FF018786</color> <color name="onSecondaryDark">#FF000000</color> <color name="backgroundDark">#FF121212</color> <color name="surfaceDark">#FF1E1E1E</color> <color name="onBackgroundDark">#FFFFFFFF</color> <color name="onSurfaceDark">#FFFFFFFF</color> <color name="errorDark">#FFCF6679</color> <color name="onErrorDark">#FF000000</color> <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

@@ -1,25 +1,29 @@
 package com.example.gymtrackerviews // Tu paquete
 
+// --- IMPORTS ---
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater // Import necesario
+import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup       // Import necesario
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity // Import para la Toolbar
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController // Import para Toolbar
-import androidx.navigation.ui.AppBarConfiguration     // Import para Toolbar
-import androidx.navigation.ui.NavigationUI           // Import para Toolbar
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.NavigationUI
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.button.MaterialButton // Import MaterialButton
 import com.example.gymtrackerviews.databinding.FragmentWorkoutDetailBinding
 import com.example.gymtrackerviews.databinding.DialogAddSetBinding
 import kotlinx.coroutines.flow.collectLatest
@@ -29,10 +33,16 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Date
-import android.view.MenuItem // Import para onOptionsItemSelected
+import android.view.MenuItem
+import kotlin.math.max
+// --- FIN IMPORTS ---
 
-class WorkoutDetailFragment : Fragment() {
+// ================================================================
+// --- INICIO DE LA CLASE WorkoutDetailFragment ---
+// ================================================================
+class WorkoutDetailFragment : Fragment() { // <-- Llave de apertura de la CLASE
 
+    // --- Propiedades ---
     private var _binding: FragmentWorkoutDetailBinding? = null
     private val binding get() = _binding!!
 
@@ -42,7 +52,17 @@ class WorkoutDetailFragment : Fragment() {
     }
     private lateinit var workoutDetailAdapter: WorkoutDetailAdapter
 
-    // --- onCreateView CON FIRMA Y RETURN CORRECTOS ---
+    private var countDownTimer: CountDownTimer? = null
+    private var timerIsRunning = false
+    private var startRestTimeInMillis: Long = 90000
+    private var timeLeftInMillis: Long = startRestTimeInMillis
+    private val timerStepMillis: Long = 15000
+    private val minRestTimeMillis: Long = 15000
+    private val maxRestTimeMillis: Long = 300000
+    // --- Fin Propiedades ---
+
+
+    // --- onCreateView (COMPLETO Y CORRECTO) ---
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -54,100 +74,94 @@ class WorkoutDetailFragment : Fragment() {
     }
     // --- FIN onCreateView ---
 
+    // --- onViewCreated (COMPLETO) ---
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Log.d("WorkoutDetailFragment", "--- onViewCreated START (Workout ID from ViewModel: ${viewModel.workoutId}) ---")
         super.onViewCreated(view, savedInstanceState) // Llamada a super
 
-        // --- Configuración de la Toolbar ---
-        val navController = findNavController()
-        // Usamos solo el NavController para que el botón atrás siempre aparezca
-        val appBarConfiguration = AppBarConfiguration(navController.graph)
-        NavigationUI.setupWithNavController(binding.toolbarDetail, navController, appBarConfiguration)
-        (activity as? AppCompatActivity)?.setSupportActionBar(binding.toolbarDetail)
-        (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        (activity as? AppCompatActivity)?.supportActionBar?.setDisplayShowHomeEnabled(true)
-        setHasOptionsMenu(true) // Habilitar manejo de opciones de menú (botón atrás)
-        // --- Fin Configuración Toolbar ---
+        setupToolbar() // Configura la Toolbar
+        setupSetsRecyclerView() // Configura el RecyclerView
+        observeViewModelData() // Empieza a observar datos
 
-
-        // Ya no usamos este TextView para el título principal
-        // binding.textViewDetailTitle.text = "Detalles del Workout ID: ${viewModel.workoutId}"
-
-        setupSetsRecyclerView() // Configura adapter y RV
-        observeViewModelData() // Empieza a observar
-
-        // Listener botón Añadir Serie
-        binding.buttonAddSet.setOnClickListener {
-            Log.d("WorkoutDetailFragment", "Add Set button clicked")
-            if (binding.buttonAddSet.isEnabled) {
-                showAddOrEditSetDialog(null)
-            } else {
-                Toast.makeText(context, "El workout ya está finalizado.", Toast.LENGTH_SHORT).show()
-            }
+        // Listeners Botones Temporizador
+        binding.buttonTimerToggle.setOnClickListener {
+            if (timerIsRunning) { pauseTimer() } else { startTimer() }
         }
+        binding.buttonTimerReset.setOnClickListener { resetTimer() }
+        binding.buttonTimerDecrease.setOnClickListener { adjustTimer(-timerStepMillis) }
+        binding.buttonTimerIncrease.setOnClickListener { adjustTimer(timerStepMillis) }
 
-        // Listener botón Finalizar Workout
+        updateTimerUI() // UI inicial del timer
+
+        // Listeners otros botones
+        binding.buttonAddSet.setOnClickListener {
+            Log.d("WorkoutDetailFragment", "Add Set button clicked. Is Enabled: ${binding.buttonAddSet.isEnabled}")
+            if (binding.buttonAddSet.isEnabled) { showAddOrEditSetDialog(null) }
+            else { Toast.makeText(context, "El workout ya está finalizado.", Toast.LENGTH_SHORT).show() }
+        }
         binding.buttonFinishWorkout.setOnClickListener {
             Log.d("WorkoutDetailFragment", "Finish Workout button clicked for workout ID: ${viewModel.workoutId}")
             if (binding.buttonFinishWorkout.isVisible) {
                 saveNotes() // Guardar notas ANTES de finalizar
                 Log.d("WorkoutDetailFragment", "Notes saved before finishing.")
-                viewModel.finishWorkout(binding.editTextWorkoutNotes.text.toString()) // Pasamos las notas actuales
+                viewModel.finishWorkout(binding.editTextWorkoutNotes.text.toString())
                 Toast.makeText(context, "Workout finalizado", Toast.LENGTH_SHORT).show()
             }
         }
+
         Log.d("WorkoutDetailFragment", "--- onViewCreated END ---")
     }
+    // --- FIN onViewCreated ---
 
-    // --- Manejar el click en el botón Atrás/Up de la Toolbar ---
+    // --- setupToolbar (COMPLETO) ---
+    private fun setupToolbar() {
+        val navController = findNavController()
+        val appBarConfiguration = AppBarConfiguration(navController.graph)
+        NavigationUI.setupWithNavController(binding.toolbarDetail, navController, appBarConfiguration)
+        (activity as? AppCompatActivity)?.setSupportActionBar(binding.toolbarDetail)
+        (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        (activity as? AppCompatActivity)?.supportActionBar?.setDisplayShowHomeEnabled(true)
+        setHasOptionsMenu(true)
+    }
+    // --- FIN setupToolbar ---
+
+    // --- onOptionsItemSelected (COMPLETO) ---
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Verificamos si el item pulsado es el botón Home/Up (la flecha atrás)
         if (item.itemId == android.R.id.home) {
-            // Usamos el NavController para navegar hacia atrás
             findNavController().navigateUp()
-            return true // Indicamos que hemos manejado el evento
+            return true
         }
         return super.onOptionsItemSelected(item)
     }
-    // --- Fin onOptionsItemSelected ---
+    // --- FIN onOptionsItemSelected ---
 
-    // Observa los datos del ViewModel
+    // --- observeViewModelData (COMPLETO) ---
     private fun observeViewModelData() {
         Log.d("WorkoutDetailFragment", "Starting to observe ViewModel data")
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // 1. Observar detalles del Workout (fechas, notas y TÍTULO TOOLBAR)
+                // Observar detalles del Workout
                 launch {
                     viewModel.workoutDetails.collectLatest { workout ->
                         if (workout != null) {
-                            Log.d("WorkoutDetailFragment", "Workout details updated: $workout")
-                            val dateFormat = java.text.SimpleDateFormat("dd MMM yy, HH:mm", java.util.Locale.getDefault()) // Formato más corto para título
+                            val dateFormatTitle = java.text.SimpleDateFormat("dd MMM yy, HH:mm", java.util.Locale.getDefault())
+                            (activity as? AppCompatActivity)?.supportActionBar?.title = "Workout ${dateFormatTitle.format(workout.startTime)}"
                             val dateFormatFull = java.text.SimpleDateFormat("dd MMM yy, HH:mm:ss", java.util.Locale.getDefault())
-
-                            // Poner la fecha de inicio en el título de la Toolbar
-                            (activity as? AppCompatActivity)?.supportActionBar?.title = "Workout ${dateFormat.format(workout.startTime)}"
-
-                            // Mostramos fecha inicio y fin
-                            binding.textViewDetailStartTime.text = "Iniciado: ${dateFormatFull.format(workout.startTime)}"
                             binding.textViewDetailEndTime.isVisible = workout.endTime != null
                             workout.endTime?.let { binding.textViewDetailEndTime.text = "Finalizado: ${dateFormatFull.format(it)}" }
-
-                            // Cargar notas
                             val notes = workout.notes
                             if (_binding != null && binding.editTextWorkoutNotes.isEnabled && binding.editTextWorkoutNotes.text.toString() != (notes ?: "")) {
                                 binding.editTextWorkoutNotes.setText(notes ?: "")
                             }
                         } else {
                             (activity as? AppCompatActivity)?.supportActionBar?.title = "Cargando Workout..."
-                            binding.textViewDetailStartTime.text = "Iniciado: (Cargando...)"
                             binding.textViewDetailEndTime.isVisible = false
                         }
                     }
                 }
-                // 2. Observar lista de Series
+                // Observar lista de Series
                 launch {
                     viewModel.groupedWorkoutSets.collectLatest { groupedSetsMap ->
-                        Log.d("WorkoutDetailFragment", "Grouped sets map updated. Exercise count: ${groupedSetsMap.size}")
                         val detailListItems = mutableListOf<WorkoutDetailListItem>()
                         groupedSetsMap.toSortedMap().forEach { (exerciseName, sets) ->
                             detailListItems.add(WorkoutDetailListItem.HeaderItem(exerciseName))
@@ -163,7 +177,7 @@ class WorkoutDetailFragment : Fragment() {
                         }
                     }
                 }
-                // 3. Observar estado 'finalizado'
+                // Observar estado 'finalizado'
                 launch {
                     viewModel.isWorkoutFinished.collectLatest { isFinished ->
                         Log.d("WorkoutDetailFragment", "Observed isWorkoutFinished state: $isFinished")
@@ -171,15 +185,21 @@ class WorkoutDetailFragment : Fragment() {
                             safeBinding.buttonFinishWorkout.isVisible = !isFinished
                             safeBinding.buttonAddSet.isEnabled = !isFinished
                             safeBinding.editTextWorkoutNotes.isEnabled = !isFinished
-                            Log.d("WorkoutDetailFragment", "Updated button/notes enabled state based on isFinished=$isFinished")
+                            safeBinding.buttonTimerToggle.isEnabled = !isFinished
+                            safeBinding.buttonTimerReset.isEnabled = !isFinished && timeLeftInMillis < startRestTimeInMillis
+                            safeBinding.buttonTimerDecrease.isEnabled = !isFinished && !timerIsRunning
+                            safeBinding.buttonTimerIncrease.isEnabled = !isFinished && !timerIsRunning
+                            if(isFinished && timerIsRunning) { pauseTimer() }
+                            Log.d("WorkoutDetailFragment", "Updated button/notes/timer enabled state based on isFinished=$isFinished")
                         }
                     }
                 }
             } // Fin repeatOnLifecycle
         } // Fin launch principal
     }
+    // --- FIN observeViewModelData ---
 
-    // Configura el RecyclerView
+    // --- setupSetsRecyclerView (COMPLETO) ---
     private fun setupSetsRecyclerView() {
         workoutDetailAdapter = WorkoutDetailAdapter(
             onSetClick = { setToEdit ->
@@ -199,24 +219,103 @@ class WorkoutDetailFragment : Fragment() {
         }
         Log.d("WorkoutDetailFragment", "Sets RecyclerView setup complete with WorkoutDetailAdapter.")
     }
+    // --- FIN setupSetsRecyclerView ---
 
-    // Muestra el diálogo para añadir o editar una serie
+    // --- showAddOrEditSetDialog (COMPLETO) ---
     private fun showAddOrEditSetDialog(existingSet: WorkoutSet?) {
-        // ... (código interno del diálogo sin cambios) ...
-    }
+        val dialogBinding = DialogAddSetBinding.inflate(LayoutInflater.from(requireContext()))
+        val isEditing = existingSet != null
 
-    // Muestra diálogo para confirmar borrado de serie
+        // Configuración del AutoCompleteTextView
+        try {
+            val exercises: Array<String> = resources.getStringArray(R.array.default_exercise_list)
+            val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, exercises)
+            dialogBinding.editTextExerciseName.setAdapter(adapter)
+            Log.d("WorkoutDetailFragment", "AutoCompleteTextView adapter set.")
+        } catch (e: Exception) {
+            Log.e("WorkoutDetailFragment", "Error setting AutoCompleteTextView adapter", e)
+        }
+
+        if (isEditing && existingSet != null) {
+            dialogBinding.editTextExerciseName.setText(existingSet.exerciseName, false)
+            dialogBinding.editTextReps.setText(existingSet.repetitions.toString())
+            dialogBinding.editTextWeight.setText(existingSet.weight.toString())
+            Log.d("WorkoutDetailFragment", "Dialog pre-filled for editing set ID: ${existingSet.id}")
+        }
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(if (isEditing) "Editar Serie" else "Añadir Nueva Serie")
+        builder.setView(dialogBinding.root)
+        builder.setPositiveButton(if (isEditing) "Actualizar" else "Guardar") { dialog, _ ->
+            val exerciseName = dialogBinding.editTextExerciseName.text.toString().trim()
+            val repsString = dialogBinding.editTextReps.text.toString()
+            val weightString = dialogBinding.editTextWeight.text.toString()
+
+            if (exerciseName.isEmpty() || repsString.isEmpty() || weightString.isEmpty()) {
+                Toast.makeText(context, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
+                return@setPositiveButton
+            }
+
+            try {
+                val reps = repsString.toInt()
+                val weight = weightString.toDouble()
+
+                if (reps <= 0) {
+                    Toast.makeText(context, "Las repeticiones deben ser mayor que cero", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                if (weight < 0) {
+                    Toast.makeText(context, "El peso no puede ser negativo", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+
+                if (isEditing && existingSet != null) {
+                    val updatedSet = existingSet.copy(exerciseName = exerciseName, repetitions = reps, weight = weight)
+                    viewModel.updateSet(updatedSet)
+                    Toast.makeText(context, "Serie actualizada", Toast.LENGTH_SHORT).show()
+                } else {
+                    viewModel.insertSet(exerciseName, reps, weight)
+                    Toast.makeText(context, "Serie guardada", Toast.LENGTH_SHORT).show()
+                }
+                dialog.dismiss()
+            } catch (e: NumberFormatException) {
+                Toast.makeText(context, "Introduce números válidos para Reps y Peso", Toast.LENGTH_SHORT).show()
+            }
+        }
+        builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.dismiss() }
+        try {
+            builder.create().show()
+            Log.d("WorkoutDetailFragment", "Add/Edit dialog shown successfully. Editing: $isEditing")
+        } catch (e: Exception) {
+            Log.e("WorkoutDetailFragment", "Error showing Add/Edit dialog", e)
+            Toast.makeText(context, "Error al mostrar el diálogo", Toast.LENGTH_SHORT).show()
+        }
+    }
+    // --- FIN showAddOrEditSetDialog ---
+
+    // --- showDeleteConfirmationDialog (COMPLETO) ---
     private fun showDeleteConfirmationDialog(setToDelete: WorkoutSet) {
-        // ... (código interno del diálogo sin cambios) ...
+        AlertDialog.Builder(requireContext())
+            .setTitle("Confirmar Borrado")
+            .setMessage("¿Seguro que quieres borrar esta serie?\n(${setToDelete.exerciseName}: ${setToDelete.repetitions} reps @ ${setToDelete.weight} kg)")
+            .setPositiveButton("Borrar") { _, _ ->
+                viewModel.deleteSet(setToDelete)
+                Log.d("WorkoutDetailFragment", "Delete confirmed for set ID: ${setToDelete.id}. Called viewModel.deleteSet")
+                Toast.makeText(context, "Serie borrada", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+        Log.d("WorkoutDetailFragment", "Delete confirmation dialog shown for set ID: ${setToDelete.id}")
     }
+    // --- FIN showDeleteConfirmationDialog ---
 
-    // Función para guardar las notas actuales del EditText
+    // --- saveNotes (COMPLETO) ---
     private fun saveNotes() {
         if (_binding != null) {
             if (binding.editTextWorkoutNotes.isEnabled) {
                 val notesFromEditText = binding.editTextWorkoutNotes.text.toString()
                 Log.d("WorkoutDetailFragment", "Saving notes: '$notesFromEditText'")
-                viewModel.saveNotes(notesFromEditText) // Llama al ViewModel
+                viewModel.saveNotes(notesFromEditText)
             } else {
                 Log.d("WorkoutDetailFragment", "Notes EditText is disabled, skipping save.")
             }
@@ -224,8 +323,9 @@ class WorkoutDetailFragment : Fragment() {
             Log.w("WorkoutDetailFragment", "Binding is null in saveNotes, cannot save.")
         }
     }
+    // --- FIN saveNotes ---
 
-    // --- onPause ---
+    // --- onPause (COMPLETO) ---
     override fun onPause() {
         super.onPause() // Llamada a super OBLIGATORIA
         Log.d("WorkoutDetailFragment", "--- onPause START --- Attempting to call saveNotes...")
@@ -234,12 +334,87 @@ class WorkoutDetailFragment : Fragment() {
     }
     // --- FIN onPause ---
 
-    // --- onDestroyView ---
+    // --- FUNCIONES TEMPORIZADOR (COMPLETAS) ---
+    private fun startTimer() {
+        countDownTimer?.cancel()
+        countDownTimer = object : CountDownTimer(timeLeftInMillis, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                timeLeftInMillis = millisUntilFinished
+                updateTimerUI()
+            }
+            override fun onFinish() {
+                timerIsRunning = false
+                timeLeftInMillis = startRestTimeInMillis
+                updateTimerUI()
+                context?.let { Toast.makeText(it, "¡Descanso terminado!", Toast.LENGTH_SHORT).show() }
+            }
+        }.start()
+        timerIsRunning = true
+        updateTimerUI()
+        Log.d("WorkoutDetailFragment", "Timer started.")
+    }
+
+    private fun pauseTimer() {
+        countDownTimer?.cancel()
+        timerIsRunning = false
+        updateTimerUI()
+        Log.d("WorkoutDetailFragment", "Timer paused.")
+    }
+
+    private fun resetTimer() {
+        pauseTimer()
+        timeLeftInMillis = startRestTimeInMillis
+        updateTimerUI()
+        Log.d("WorkoutDetailFragment", "Timer reset.")
+    }
+
+    private fun adjustTimer(changeMillis: Long) {
+        if (!timerIsRunning) {
+            var newStartTime = startRestTimeInMillis + changeMillis
+            newStartTime = newStartTime.coerceIn(minRestTimeMillis, maxRestTimeMillis)
+            if (newStartTime != startRestTimeInMillis) {
+                startRestTimeInMillis = newStartTime
+                timeLeftInMillis = startRestTimeInMillis
+                updateTimerUI()
+                Log.d("WorkoutDetailFragment", "Timer adjusted. New start time: ${startRestTimeInMillis / 1000}s")
+            }
+        } else {
+            Log.d("WorkoutDetailFragment", "Cannot adjust timer while running.")
+        }
+    }
+
+    private fun updateTimerUI() {
+        if (_binding == null) return
+
+        val minutes = (timeLeftInMillis / 1000) / 60
+        val seconds = (timeLeftInMillis / 1000) % 60
+        val timeFormatted = String.format(Locale.getDefault(), "%d:%02d", minutes, seconds)
+        binding.textViewTimer.text = timeFormatted
+
+        val iconResId = if (timerIsRunning) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
+        val iconDrawable = ContextCompat.getDrawable(requireContext(), iconResId)
+        // Usamos setIcon en MaterialButton
+        binding.buttonTimerToggle.setIcon(iconDrawable)
+
+        val workoutFinished = !(binding.buttonAddSet.isEnabled)
+        binding.buttonTimerReset.isEnabled = timeLeftInMillis < startRestTimeInMillis && !timerIsRunning && !workoutFinished
+        binding.buttonTimerDecrease.isEnabled = !timerIsRunning && !workoutFinished
+        binding.buttonTimerIncrease.isEnabled = !timerIsRunning && !workoutFinished
+        if (startRestTimeInMillis <= minRestTimeMillis) binding.buttonTimerDecrease.isEnabled = false
+        if (startRestTimeInMillis >= maxRestTimeMillis) binding.buttonTimerIncrease.isEnabled = false
+    }
+    // --- FIN FUNCIONES TEMPORIZADOR ---
+
+    // --- onDestroyView (COMPLETO) ---
     override fun onDestroyView() {
         super.onDestroyView() // Llamada a super OBLIGATORIA
+        countDownTimer?.cancel() // Cancelamos el timer
         _binding = null // Limpiamos el binding
-        Log.d("WorkoutDetailFragment", "--- onDestroyView --- Binding set to null.")
+        Log.d("WorkoutDetailFragment", "--- onDestroyView --- Timer cancelled. Binding set to null.")
     }
     // --- FIN onDestroyView ---
 
-} // --- FIN de la clase WorkoutDetailFragment ---
+} // <--- ¡¡LLAVE DE CIERRE FINAL DE LA CLASE!! Asegúrate de que está y no hay nada después.
+// ================================================================
+// --- FIN DE LA CLASE WorkoutDetailFragment ---
+// ================================================================

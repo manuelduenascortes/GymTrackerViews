@@ -13,12 +13,11 @@ data class Workout(
     @ColumnInfo(name = "start_time")
     val startTime: Date,
 
+    // Campo para la hora de fin (puede ser null)
     @ColumnInfo(name = "end_time")
     val endTime: Date? = null,
 
-    // 👇 --- CAMPO NUEVO AÑADIDO --- 👇
-    // Campo para notas, tipo String, puede ser null
+    // Campo para notas (puede ser null)
     @ColumnInfo(name = "notes")
     val notes: String? = null
-    // 👆 --- FIN CAMPO NUEVO --- 👆
 )

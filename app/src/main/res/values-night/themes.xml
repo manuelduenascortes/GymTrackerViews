@@ -1,7 +1,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.GymTrackerViews" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
-    </style>
+    <style name="Base.Theme.GymTrackerViews" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/primaryDark</item>
+        <item name="colorPrimaryVariant">@color/primaryVariantDark</item>
+        <item name="colorOnPrimary">@color/onPrimaryDark</item> <item name="colorSecondary">@color/secondaryDark</item>
+        <item name="colorSecondaryVariant">@color/secondaryVariantDark</item>
+        <item name="colorOnSecondary">@color/onSecondaryDark</item> <item name="android:colorBackground">@color/backgroundDark</item> <item name="colorSurface">@color/surfaceDark</item> <item name="colorOnBackground">@color/onBackgroundDark</item> <item name="colorOnSurface">@color/onSurfaceDark</item> <item name="colorError">@color/errorDark</item>
+        <item name="colorOnError">@color/onErrorDark</item> <item name="colorOutline">@color/white</item> </style>
+
+    <style name="Theme.GymTrackerViews" parent="Base.Theme.GymTrackerViews" />
 </resources>
