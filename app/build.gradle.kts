@@ -1,16 +1,19 @@
+// build.gradle.kts (Module :app - MODIFICADO CON UNA VERSIÓN ANTERIOR DEL FIREBASE BOM)
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt") // Para Room
     id("androidx.navigation.safeargs.kotlin") // Para Safe Args
+    id("com.google.gms.google-services") // Plugin para Firebase
 }
 
 android {
-    namespace = "com.example.gymtrackerviews"
+    namespace = "com.example.gymtrackerviews" // Asegúrate que "com.example" sea tu namespace real
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.gymtrackerviews"
+        applicationId = "com.example.gymtrackerviews" // Y aquí tu applicationId real
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -49,7 +52,7 @@ android {
 }
 
 dependencies {
-    // Variables de versión
+    // Variables de versión (de tu commit estable)
     val room_version = "2.6.1"
     val lifecycle_version = "2.7.0"
     val coroutines_version = "1.7.3"
@@ -88,6 +91,17 @@ dependencies {
 
     // MPAndroidChart (para gráficas)
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // Firebase
+    // CAMBIAMOS LA VERSIÓN DEL BOM a una que podría ser más compatible con Kotlin 1.9.22
+    implementation(platform("com.google.firebase:firebase-bom:32.8.1")) // <<< VERSIÓN DEL BOM CAMBIADA AQUÍ
+
+    // Dependencia para Firebase Authentication (login y registro)
+    implementation("com.google.firebase:firebase-auth-ktx")
+
+    // Dependencia para Firebase Analytics (opcional pero recomendada)
+    implementation("com.google.firebase:firebase-analytics-ktx")
+
 
     // Test
     testImplementation("junit:junit:4.13.2")

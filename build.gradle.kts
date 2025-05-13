@@ -8,4 +8,5 @@ plugins {
     id("androidx.navigation.safeargs.kotlin") version "2.7.7" apply false
     // Plugin Kapt (necesario para Room)
     id("org.jetbrains.kotlin.kapt") version "1.9.22" apply false // Usa la misma versión que kotlin.android
+    id("com.google.gms.google-services") version "4.4.2" apply false
 }

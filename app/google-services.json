@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "769190267389",
+    "project_id": "gymtrackerviews",
+    "storage_bucket": "gymtrackerviews.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:769190267389:android:689db379d76e7131847194",
+        "android_client_info": {
+          "package_name": "com.example.gymtrackerviews"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqiwHxv3iMh1Lb9ghuMiSyfrvvlCdFA4M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
