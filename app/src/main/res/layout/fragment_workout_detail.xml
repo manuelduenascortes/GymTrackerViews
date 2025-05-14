@@ -27,11 +27,36 @@
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <TextView
+        android:id="@+id/textViewWorkoutNameDetail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+        app:layout_constraintEnd_toStartOf="@+id/buttonEditWorkoutName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbarDivider"
+        tools:text="Nombre del Entrenamiento Largo" />
+
+    <ImageButton
+        android:id="@+id/buttonEditWorkoutName"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Editar nombre del entrenamiento"
+        app:srcCompat="@android:drawable/ic_menu_edit"
+        app:tint="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/textViewWorkoutNameDetail"
+        app:layout_constraintBottom_toBottomOf="@+id/textViewWorkoutNameDetail"
+        tools:ignore="TouchTargetSizeCheck" />
+    <TextView
         android:id="@+id/textViewDetailEndTime"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp" android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:text="Finalizado: ?"
         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
@@ -39,15 +64,13 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbarDivider"
-        tools:visibility="visible"/>
+        app:layout_constraintTop_toBottomOf="@+id/textViewWorkoutNameDetail" tools:visibility="visible"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewSets"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp" android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/editTextWorkoutNotes"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -81,7 +104,8 @@
         android:inputType="textMultiLine|textCapSentences"
         android:minHeight="48dp"
         android:gravity="top|start"
-        app:layout_constraintBottom_toTopOf="@+id/timerLabel" app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/timerLabel"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView

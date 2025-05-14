@@ -3,7 +3,56 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/workoutListFragment">
+    app:startDestination="@id/splashFragment">
+
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.example.gymtrackerviews.ui.auth.SplashFragment"
+        android:label="Cargando..."
+        tools:layout="@layout/fragment_splash">
+        <action
+            android:id="@+id/action_splashFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_splashFragment_to_workoutListFragment"
+            app:destination="@id/workoutListFragment"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.gymtrackerviews.ui.auth.LoginFragment"
+        android:label="Iniciar Sesión"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_loginFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_workoutListFragment"
+            app:destination="@id/workoutListFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.gymtrackerviews.ui.auth.RegisterFragment"
+        android:label="Crear Cuenta"
+        tools:layout="@layout/fragment_register">
+        <action
+            android:id="@+id/action_registerFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_registerFragment_to_workoutListFragment"
+            app:destination="@id/workoutListFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 
     <fragment
         android:id="@+id/workoutListFragment"
@@ -16,13 +65,23 @@
         <action
             android:id="@+id/action_workoutListFragment_to_workoutDetailFragment"
             app:destination="@id/workoutDetailFragment" />
+        <action
+            android:id="@+id/action_workoutListFragment_to_splashFragment"
+            app:destination="@id/splashFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
         android:id="@+id/newWorkoutFragment"
         android:name="com.example.gymtrackerviews.NewWorkoutFragment"
         android:label="Nuevo Entrenamiento"
-        tools:layout="@layout/fragment_new_workout" />
+        tools:layout="@layout/fragment_new_workout" >
+        <action
+            android:id="@+id/action_newWorkoutFragment_to_workoutDetailFragment"
+            app:destination="@id/workoutDetailFragment"
+            app:popUpTo="@id/workoutListFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/workoutDetailFragment"

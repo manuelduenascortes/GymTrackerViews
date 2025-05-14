@@ -1,4 +1,4 @@
-// build.gradle.kts (Module :app - MODIFICADO CON UNA VERSIÓN ANTERIOR DEL FIREBASE BOM)
+// build.gradle.kts (Module :app)
 
 plugins {
     id("com.android.application")
@@ -32,12 +32,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        // CAMBIO: Actualizado a Java 17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        // CAMBIO: Actualizado a JVM target 17
+        jvmTarget = "17"
     }
 
     buildFeatures {
@@ -92,14 +94,9 @@ dependencies {
     // MPAndroidChart (para gráficas)
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
-    // Firebase
-    // CAMBIAMOS LA VERSIÓN DEL BOM a una que podría ser más compatible con Kotlin 1.9.22
-    implementation(platform("com.google.firebase:firebase-bom:32.8.1")) // <<< VERSIÓN DEL BOM CAMBIADA AQUÍ
-
-    // Dependencia para Firebase Authentication (login y registro)
+    // Firebase (usando la versión del BOM que funcionó)
+    implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
     implementation("com.google.firebase:firebase-auth-ktx")
-
-    // Dependencia para Firebase Analytics (opcional pero recomendada)
     implementation("com.google.firebase:firebase-analytics-ktx")
 
 

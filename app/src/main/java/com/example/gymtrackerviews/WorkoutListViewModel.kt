@@ -10,44 +10,67 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Date
 
+// TODO: Asegúrate de que Workout, WorkoutSummary y WorkoutDao están importados correctamente
+// import com.example.gymtrackerviews.model.Workout
+// import com.example.gymtrackerviews.model.WorkoutSummary
+// import com.example.gymtrackerviews.data.WorkoutDao
+
 class WorkoutListViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
 
-    // 👇 --- StateFlow ahora contiene List<WorkoutSummary> --- 👇
-    val allWorkoutSummaries: StateFlow<List<WorkoutSummary>> = workoutDao.getAllWorkoutSummaries() // Llama a la nueva función del DAO
+    val allWorkoutSummaries: StateFlow<List<WorkoutSummary>> = workoutDao.getAllWorkoutSummaries()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyList() // Valor inicial sigue siendo lista vacía
+            initialValue = emptyList()
         )
-    // 👆 --- FIN StateFlow MODIFICADO --- 👆
 
-    // --- Funciones insert y delete usan el objeto Workout interno ---
+    /**
+     * Inserta un nuevo workout con un nombre opcional y devuelve su ID.
+     * Esta es una función 'suspend' porque la inserción en la base de datos es asíncrona.
+     * Devuelve el ID del workout insertado, o -1L si hubo un error.
+     */
+    suspend fun insertNewWorkoutWithNameAndGetId(workoutName: String?): Long {
+        // Si el nombre está vacío, lo tratamos como nulo para la base de datos.
+        val nameToSave = if (workoutName.isNullOrBlank()) null else workoutName
+
+        val newWorkout = Workout(
+            name = nameToSave, // Usamos el nombre proporcionado
+            startTime = Date()
+        )
+        var newWorkoutId = -1L
+        try {
+            newWorkoutId = workoutDao.insertWorkout(newWorkout)
+            Log.d("WorkoutListViewModel", "Nuevo workout insertado con ID: $newWorkoutId, Nombre: $nameToSave")
+        } catch (e: Exception) {
+            Log.e("WorkoutListViewModel", "Error inserting workout with name", e)
+        }
+        return newWorkoutId
+    }
+
+    // Mantenemos el insertNewWorkout original por si lo usas en otro sitio,
+    // aunque ahora el FAB debería usar el nuevo método con nombre.
     fun insertNewWorkout() {
         viewModelScope.launch {
-            val newWorkout = Workout(startTime = Date())
+            val newWorkout = Workout(startTime = Date()) // Crea un workout sin nombre
             try {
                 workoutDao.insertWorkout(newWorkout)
             } catch (e: Exception) {
-                Log.e("WorkoutListViewModel", "Error inserting workout", e)
+                Log.e("WorkoutListViewModel", "Error inserting workout (sin devolver ID y sin nombre)", e)
             }
         }
     }
 
-    // Recibe WorkoutSummary pero solo necesita el Workout para borrar
     fun deleteWorkout(workoutSummary: WorkoutSummary) {
         viewModelScope.launch {
             try {
-                // Pasamos solo el objeto workout interno al DAO
                 workoutDao.deleteWorkout(workoutSummary.workout)
             } catch (e: Exception) {
                 Log.e("WorkoutListViewModel", "Error deleting workout", e)
             }
         }
     }
-    // --- Fin Funciones ---
-} // Fin Clase ViewModel
+}
 
-// --- Factory (sin cambios) ---
 class WorkoutListViewModelFactory(private val workoutDao: WorkoutDao) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(WorkoutListViewModel::class.java)) {

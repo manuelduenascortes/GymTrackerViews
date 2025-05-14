@@ -11,9 +11,13 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+// TODO: Asegúrate de que la clase WorkoutSummary y Workout están definidas y son accesibles.
+// Asumo que WorkoutSummary tiene una propiedad 'workout: Workout' y 'setCount: Int'
+// y que Workout tiene 'id', 'startTime', 'endTime', 'notes'.
+
 class WorkoutAdapter(
-    private val onItemClick: (Workout) -> Unit,
-    private val onDeleteClick: (Workout) -> Unit
+    private val onItemClick: (WorkoutSummary) -> Unit, // Espera WorkoutSummary
+    private val onDeleteClick: (WorkoutSummary) -> Unit  // Espera WorkoutSummary
 ) : ListAdapter<WorkoutSummary, WorkoutAdapter.WorkoutViewHolder>(WorkoutSummaryDiffCallback()) {
 
     inner class WorkoutViewHolder(private val binding: ItemWorkoutBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -21,33 +25,36 @@ class WorkoutAdapter(
 
         init {
             binding.root.setOnClickListener {
-                currentWorkoutSummary?.workout?.let { workout -> onItemClick(workout) }
+                currentWorkoutSummary?.let { summary -> onItemClick(summary) }
             }
             binding.buttonDeleteWorkout.setOnClickListener {
-                currentWorkoutSummary?.workout?.let { workout -> onDeleteClick(workout) }
+                currentWorkoutSummary?.let { summary -> onDeleteClick(summary) }
             }
         }
 
         fun bind(workoutSummary: WorkoutSummary) {
             currentWorkoutSummary = workoutSummary
-            val workout = workoutSummary.workout // Obtenemos el objeto Workout interno
+            val workout = workoutSummary.workout
 
-            // Formatear hora de inicio
             val dateFormat = SimpleDateFormat("dd MMM yy, HH:mm:ss", Locale.getDefault())
             binding.textViewWorkoutStartTime.text = "Inicio: ${dateFormat.format(workout.startTime)}"
 
-            // Calcular y Mostrar Estado/Duración
             if (workout.endTime != null) {
+                // CAMBIO AQUÍ: Se eliminó el '!!' de workout.endTime
                 val durationMillis = workout.endTime.time - workout.startTime.time
                 val hours = TimeUnit.MILLISECONDS.toHours(durationMillis)
                 val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMillis) % 60
                 var durationString = "Duración: "
                 if (hours > 0) { durationString += "${hours}h " }
-                if (hours > 0 || minutes > 0) { durationString += "${minutes}m" }
-                else if (hours == 0L) {
+                if (hours > 0 || minutes > 0) {
+                    durationString += "${minutes}m"
+                } else {
                     val seconds = TimeUnit.MILLISECONDS.toSeconds(durationMillis) % 60
-                    if (seconds > 0) { durationString += "${seconds}s" }
-                    else { durationString = "Duración: < 1m" }
+                    if (seconds > 0) {
+                        durationString += "${seconds}s"
+                    } else {
+                        durationString = "Duración: < 1s"
+                    }
                 }
                 binding.textViewWorkoutStatusDuration.text = durationString
                 binding.textViewWorkoutStatusDuration.visibility = View.VISIBLE
@@ -56,26 +63,19 @@ class WorkoutAdapter(
                 binding.textViewWorkoutStatusDuration.visibility = View.VISIBLE
             }
 
-            // Mostrar conteo de series
             binding.textViewSetCount.text = "Series: ${workoutSummary.setCount}"
             binding.textViewSetCount.visibility = View.VISIBLE
 
-            // --- Mostrar/Ocultar Preview de Notas (Lógica Revisada) ---
-            val notes = workout.notes // Obtenemos las notas
-            if (!notes.isNullOrBlank()) { // Comprobamos si NO son nulas O vacías/blancas
-                binding.textViewWorkoutNotesPreview.text = "Notas: ${notes}" // Añadimos prefijo "Notas: "
-                binding.textViewWorkoutNotesPreview.visibility = View.VISIBLE // Hacemos VISIBLE
+            val notes = workout.notes
+            if (!notes.isNullOrBlank()) {
+                binding.textViewWorkoutNotesPreview.text = "Notas: $notes"
+                binding.textViewWorkoutNotesPreview.visibility = View.VISIBLE
             } else {
-                // Si son nulas o vacías, ocultamos el TextView
-                binding.textViewWorkoutNotesPreview.visibility = View.GONE // Hacemos INVISIBLE
+                binding.textViewWorkoutNotesPreview.visibility = View.GONE
             }
-            // --- Fin Preview Notas ---
-
-            // ID del Workout (sigue oculto)
             binding.textViewWorkoutId.text = "Workout ID: ${workout.id}"
-            // binding.textViewWorkoutId.visibility = View.GONE // Ya debería estar GONE en el XML
         }
-    } // Fin ViewHolder
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkoutViewHolder {
         val binding = ItemWorkoutBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -85,10 +85,8 @@ class WorkoutAdapter(
     override fun onBindViewHolder(holder: WorkoutViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
+}
 
-} // Fin Adapter
-
-// DiffUtil Callback para WorkoutSummary (sin cambios)
 class WorkoutSummaryDiffCallback : DiffUtil.ItemCallback<WorkoutSummary>() {
     override fun areItemsTheSame(oldItem: WorkoutSummary, newItem: WorkoutSummary): Boolean {
         return oldItem.workout.id == newItem.workout.id
