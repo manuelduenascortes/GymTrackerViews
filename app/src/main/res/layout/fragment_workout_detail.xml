@@ -4,46 +4,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingTop="16dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp"
     tools:context=".WorkoutDetailFragment">
-
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbarDetail"
-        android:layout_width="0dp"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:theme="?attr/actionBarTheme"
-        app:titleTextColor="?attr/colorOnPrimary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <View
-        android:id="@+id/toolbarDivider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="?attr/colorControlHighlight"
-        app:layout_constraintTop_toBottomOf="@id/toolbarDetail"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
 
     <TextView
         android:id="@+id/textViewWorkoutNameDetail"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
         app:layout_constraintEnd_toStartOf="@+id/buttonEditWorkoutName"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbarDivider"
+        app:layout_constraintTop_toTopOf="parent"
         tools:text="Nombre del Entrenamiento Largo" />
 
     <ImageButton
         android:id="@+id/buttonEditWorkoutName"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginEnd="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Editar nombre del entrenamiento"
         app:srcCompat="@android:drawable/ic_menu_edit"
@@ -52,25 +33,27 @@
         app:layout_constraintTop_toTopOf="@+id/textViewWorkoutNameDetail"
         app:layout_constraintBottom_toBottomOf="@+id/textViewWorkoutNameDetail"
         tools:ignore="TouchTargetSizeCheck" />
+
     <TextView
         android:id="@+id/textViewDetailEndTime"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp" android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
         android:text="Finalizado: ?"
         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
         android:textColor="?android:attr/textColorSecondary"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewWorkoutNameDetail" tools:visibility="visible"/>
+        app:layout_constraintTop_toBottomOf="@+id/textViewWorkoutNameDetail"
+        tools:visibility="visible"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewSets"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp" android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/editTextWorkoutNotes"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -97,8 +80,6 @@
         android:id="@+id/editTextWorkoutNotes"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
         android:hint="Añadir notas sobre el workout..."
         android:inputType="textMultiLine|textCapSentences"
@@ -114,7 +95,6 @@
         android:layout_height="wrap_content"
         android:text="Descanso:"
         android:textAppearance="?attr/textAppearanceLabelMedium"
-        android:layout_marginStart="16dp"
         android:layout_marginBottom="4dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/timerLayout" />
@@ -125,8 +105,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/buttonFinishWorkout"
         app:layout_constraintEnd_toEndOf="parent"
@@ -176,7 +154,6 @@
             android:layout_height="wrap_content"
             app:icon="@android:drawable/ic_media_next"
             tools:ignore="SpeakableTextPresentCheck" />
-
     </LinearLayout>
 
     <Button
@@ -184,8 +161,6 @@
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
         android:text="Finalizar Workout"
         android:visibility="visible"
@@ -198,7 +173,6 @@
         style="@style/Widget.Material3.Button.ElevatedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
         android:text="Añadir Serie"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
