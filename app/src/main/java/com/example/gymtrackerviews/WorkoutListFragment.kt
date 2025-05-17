@@ -12,7 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gymtrackerviews.databinding.FragmentWorkoutListBinding
-// import com.google.android.material.snackbar.Snackbar // Descomenta si usas Snackbar en otro lado
+// import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -20,16 +20,6 @@ import kotlinx.coroutines.launch
 
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
-
-// TODO: IMPORTANTE - Asegúrate de que estas clases existen y los imports son correctos.
-// Verifica los nombres y paquetes de WorkoutSummary, WorkoutAdapter, WorkoutListViewModel,
-// WorkoutDao, AppDatabase, y GymTrackerApplication.
-// import com.example.gymtrackerviews.WorkoutSummary
-// import com.example.gymtrackerviews.WorkoutAdapter
-// import com.example.gymtrackerviews.WorkoutListViewModel
-// import com.example.gymtrackerviews.GymTrackerApplication
-// import com.example.gymtrackerviews.WorkoutListViewModelFactory
-
 
 class WorkoutListFragment : Fragment() {
 
@@ -58,7 +48,7 @@ class WorkoutListFragment : Fragment() {
         setupRecyclerView()
         setupFab()
         observeViewModel()
-        setupMenu()
+        setupMenu() // Ya llama a setupMenu
     }
 
     private fun setupMenu() {
@@ -72,6 +62,17 @@ class WorkoutListFragment : Fragment() {
                 return when (menuItem.itemId) {
                     R.id.action_logout -> {
                         signOut()
+                        true
+                    }
+                    // NUEVO CASE PARA ESTADÍSTICAS
+                    R.id.action_statistics -> {
+                        if (isAdded) {
+                            try {
+                                findNavController().navigate(R.id.action_workoutListFragment_to_statisticsFragment)
+                            } catch (e: IllegalStateException) {
+                                Log.e("WorkoutListFragment", "Navigation to statistics failed: ${e.message}")
+                            }
+                        }
                         true
                     }
                     else -> false
@@ -117,8 +118,6 @@ class WorkoutListFragment : Fragment() {
     }
 
     private fun setupFab() {
-        // CAMBIO: Eliminado el operador de llamada segura '?.' porque fabNewWorkout no debería ser nulo
-        // si está definido en fragment_workout_list.xml
         binding.fabNewWorkout.setOnClickListener {
             Log.d("WorkoutListFragment", "FAB clicked, navigating to NewWorkoutFragment.")
             if (isAdded) {
@@ -137,8 +136,6 @@ class WorkoutListFragment : Fragment() {
                 viewModel.allWorkoutSummaries.collect { summaries ->
                     Log.d("WorkoutListFragment", "Workout summary list updated. Count: ${summaries.size}")
                     workoutAdapter.submitList(summaries)
-                    // CAMBIO: Eliminado el operador de llamada segura '?.' porque textViewEmptyList no debería ser nulo
-                    // si está definido en fragment_workout_list.xml
                     if (summaries.isEmpty()) {
                         binding.textViewEmptyList.visibility = View.VISIBLE
                     } else {

@@ -3,7 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_statistics"
+        android:title="Estadísticas"
+        android:icon="@android:drawable/ic_menu_sort_by_size" app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_logout"
         android:title="Cerrar Sesión"
-        android:icon="@drawable/ic_logout"  app:showAsAction="ifRoom" />
+        android:icon="@drawable/ic_logout"
+        app:showAsAction="ifRoom" />
 </menu>
