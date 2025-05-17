@@ -5,7 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import androidx.room.Transaction // Importar Transaction
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -15,10 +15,9 @@ interface WorkoutDao {
     suspend fun insertWorkout(workout: Workout): Long
 
     @Query("SELECT * FROM workouts WHERE id = :workoutId")
-    fun getWorkoutFlowById(workoutId: Long): Flow<Workout?> // Sin cambios aquí
+    fun getWorkoutFlowById(workoutId: Long): Flow<Workout?>
 
-    // 👇 --- Consulta MODIFICADA para devolver WorkoutSummary --- 👇
-    @Transaction // Buena práctica para consultas que pueden tocar múltiples tablas o relaciones
+    @Transaction
     @Query("""
         SELECT workouts.*, COUNT(workout_sets.id) as setCount
         FROM workouts
@@ -27,11 +26,14 @@ interface WorkoutDao {
         ORDER BY workouts.start_time DESC
     """)
     fun getAllWorkoutSummaries(): Flow<List<WorkoutSummary>>
-    // 👆 --- FIN Consulta MODIFICADA --- 👆
+
+    // NUEVO MÉTODO PARA ESTADÍSTICAS: Obtener todos los workouts ordenados
+    @Query("SELECT * FROM workouts ORDER BY start_time ASC")
+    fun getAllWorkoutsForStats(): Flow<List<Workout>>
 
     @Delete
-    suspend fun deleteWorkout(workout: Workout) // Sin cambios aquí
+    suspend fun deleteWorkout(workout: Workout)
 
     @Update
-    suspend fun updateWorkout(workout: Workout) // Sin cambios aquí
+    suspend fun updateWorkout(workout: Workout)
 }

@@ -22,15 +22,12 @@ import kotlinx.coroutines.launch
 /**
  * Fragment para crear un nuevo entrenamiento.
  */
-class NewWorkoutFragment : Fragment() {
+class NewWorkoutFragment : Fragment() { // El nombre de la clase debe ser NewWorkoutFragment
 
     private var _binding: FragmentNewWorkoutBinding? = null
     private val binding get() = _binding!!
 
-    // Inyectamos el WorkoutListViewModel.
-    // La factory y GymTrackerApplication deben estar correctamente configuradas.
     private val workoutListViewModel: WorkoutListViewModel by viewModels {
-        // TODO: Verifica que esta forma de obtener el DAO es correcta para tu proyecto.
         val application = requireActivity().application as GymTrackerApplication
         WorkoutListViewModelFactory(application.database.workoutDao())
     }
@@ -49,23 +46,16 @@ class NewWorkoutFragment : Fragment() {
         binding.buttonStartAndAddSeries.setOnClickListener {
             val workoutName = binding.editTextWorkoutName.text.toString().trim()
 
-            // Usamos lifecycleScope para llamar a la función suspend del ViewModel
             viewLifecycleOwner.lifecycleScope.launch {
-                // Llamamos al método del ViewModel que inserta con nombre y devuelve ID
-                val newWorkoutId = workoutListViewModel.insertNewWorkoutWithNameAndGetId(workoutName) // Pasamos el nombre
+                val newWorkoutId = workoutListViewModel.insertNewWorkoutWithNameAndGetId(workoutName)
 
-                if (newWorkoutId != -1L && isAdded) { // Comprueba que se insertó y el fragment está activo
+                if (newWorkoutId != -1L && isAdded) {
                     Log.d("NewWorkoutFragment", "Nuevo workout creado con ID: $newWorkoutId y nombre: '$workoutName'. Navegando a detalle.")
 
-                    // Navegar a WorkoutDetailFragment usando Safe Args
-                    // Asegúrate de que la acción en nav_graph.xml desde newWorkoutFragment
-                    // hacia workoutDetailFragment se llame 'action_newWorkoutFragment_to_workoutDetailFragment'
-                    // y que acepte un argumento 'workoutId' de tipo long.
                     val action = NewWorkoutFragmentDirections.actionNewWorkoutFragmentToWorkoutDetailFragment(newWorkoutId)
                     findNavController().navigate(action)
 
                 } else if (isAdded) {
-                    // Mostrar error solo si el fragment está activo y el contexto existe
                     context?.let { ctx ->
                         Toast.makeText(ctx, "Error al crear el entrenamiento", Toast.LENGTH_SHORT).show()
                     }

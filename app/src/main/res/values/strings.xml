@@ -4,6 +4,8 @@
     <string name="no_workouts_message">No hay entrenamientos guardados.\nPulsa + para añadir el primero.</string>
     <string name="no_sets_message">Aún no hay series para este workout.\n¡Pulsa "Añadir Serie"!</string>
 
+    <string name="chart_series_label">Series</string>
+    <string name="chart_volume_label">Volumen (kg)</string>
     <string-array name="default_exercise_list">
         <item>Press de Banca con Barra</item>
         <item>Sentadilla con Barra</item>
