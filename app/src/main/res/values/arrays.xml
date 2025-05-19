@@ -1,0 +1,30 @@
+<resources>
+    <string-array name="default_exercise_list">
+        <item>Press de Banca con Barra</item>
+        <item>Sentadilla con Barra</item>
+        <item>Peso Muerto</item>
+        <item>Press Militar con Barra</item>
+        <item>Remo con Barra</item>
+        <item>Dominadas</item>
+        <item>Fondos en Paralelas</item>
+        <item>Curl de Bíceps con Barra</item>
+        <item>Press Francés</item>
+        <item>Elevaciones Laterales</item>
+        <item>Prensa de Piernas</item>
+        <item>Extensión de Cuádriceps</item>
+        <item>Curl Femoral</item>
+    </string-array>
+
+    <string-array name="default_muscle_groups">
+        <item>Pecho</item>
+        <item>Espalda</item>
+        <item>Piernas</item>
+        <item>Hombros</item>
+        <item>Bíceps</item>
+        <item>Tríceps</item>
+        <item>Abdomen</item>
+        <item>Cardio</item>
+        <item>Cuerpo Completo</item>
+        <item>Otro</item>
+    </string-array>
+</resources>

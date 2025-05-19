@@ -3,6 +3,7 @@ package com.example.gymtrackerviews // O el paquete donde tengas tus Fragments p
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -12,14 +13,25 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gymtrackerviews.databinding.FragmentWorkoutListBinding
-// import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.collectLatest // <<<--- IMPORT AÑADIDO/VERIFICADO AQUÍ
 import kotlinx.coroutines.launch
 
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
+
+// TODO: Asegúrate de que los imports para R, GymTrackerApplication, WorkoutListViewModelFactory,
+// WorkoutAdapter y WorkoutListViewModel sean correctos.
+// import com.example.gymtrackerviews.R
+// import com.example.gymtrackerviews.GymTrackerApplication
+// import com.example.gymtrackerviews.WorkoutListViewModelFactory
+// import com.example.gymtrackerviews.WorkoutAdapter
+// import com.example.gymtrackerviews.WorkoutListViewModel
+
 
 class WorkoutListFragment : Fragment() {
 
@@ -34,6 +46,9 @@ class WorkoutListFragment : Fragment() {
     private lateinit var workoutAdapter: WorkoutAdapter
     private lateinit var auth: FirebaseAuth
 
+    // Adaptador para el AutoCompleteTextView del filtro
+    private lateinit var muscleGroupFilterAdapter: ArrayAdapter<String>
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -47,8 +62,9 @@ class WorkoutListFragment : Fragment() {
         auth = Firebase.auth
         setupRecyclerView()
         setupFab()
+        setupFilter() // NUEVO: Configurar el filtro
         observeViewModel()
-        setupMenu() // Ya llama a setupMenu
+        setupMenu()
     }
 
     private fun setupMenu() {
@@ -64,7 +80,6 @@ class WorkoutListFragment : Fragment() {
                         signOut()
                         true
                     }
-                    // NUEVO CASE PARA ESTADÍSTICAS
                     R.id.action_statistics -> {
                         if (isAdded) {
                             try {
@@ -85,6 +100,8 @@ class WorkoutListFragment : Fragment() {
         auth.signOut()
         if (isAdded) {
             try {
+                // Limpiar filtro al cerrar sesión
+                viewModel.setMuscleGroupFilter(null)
                 findNavController().navigate(R.id.action_workoutListFragment_to_splashFragment)
             } catch (e: IllegalStateException) {
                 Log.e("WorkoutListFragment", "Navigation to splash failed after logout: ${e.message}")
@@ -130,14 +147,46 @@ class WorkoutListFragment : Fragment() {
         }
     }
 
+    private fun setupFilter() {
+        val muscleGroups = resources.getStringArray(R.array.default_muscle_groups)
+        muscleGroupFilterAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, muscleGroups)
+        binding.autoCompleteTextViewMuscleGroupFilter.setAdapter(muscleGroupFilterAdapter)
+
+        binding.autoCompleteTextViewMuscleGroupFilter.setOnItemClickListener { parent, _, position, _ ->
+            val selectedMuscleGroup = parent.getItemAtPosition(position) as String
+            viewModel.setMuscleGroupFilter(selectedMuscleGroup)
+        }
+
+        binding.buttonClearFilter.setOnClickListener {
+            binding.autoCompleteTextViewMuscleGroupFilter.setText("", false)
+            viewModel.setMuscleGroupFilter(null)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.muscleGroupFilter.collectLatest { currentFilter ->
+                    // Solo actualizar el texto si es diferente para evitar bucles o perder el foco
+                    if (binding.autoCompleteTextViewMuscleGroupFilter.text.toString() != (currentFilter ?: "")) {
+                        binding.autoCompleteTextViewMuscleGroupFilter.setText(currentFilter ?: "", false)
+                    }
+                }
+            }
+        }
+    }
+
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.allWorkoutSummaries.collect { summaries ->
-                    Log.d("WorkoutListFragment", "Workout summary list updated. Count: ${summaries.size}")
+                viewModel.allWorkoutSummaries.collectLatest { summaries -> // Uso de collectLatest
+                    Log.d("WorkoutListFragment", "Workout summary list updated (filter: ${viewModel.muscleGroupFilter.value}). Count: ${summaries.size}")
                     workoutAdapter.submitList(summaries)
                     if (summaries.isEmpty()) {
                         binding.textViewEmptyList.visibility = View.VISIBLE
+                        if (viewModel.muscleGroupFilter.value != null) {
+                            binding.textViewEmptyList.text = "No hay workouts para el grupo muscular '${viewModel.muscleGroupFilter.value}'."
+                        } else {
+                            binding.textViewEmptyList.text = getString(R.string.no_workouts_message)
+                        }
                     } else {
                         binding.textViewEmptyList.visibility = View.GONE
                     }

@@ -1,4 +1,4 @@
-package com.example.gymtrackerviews // Tu paquete
+package com.example.gymtrackerviews // O tu paquete de modelos/entidades
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -10,8 +10,12 @@ data class Workout(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
-    @ColumnInfo(name = "name") // NUEVO CAMPO PARA EL NOMBRE DEL ENTRENAMIENTO
-    var name: String? = null,  // Lo hacemos nullable (opcional) por ahora
+    @ColumnInfo(name = "name")
+    var name: String? = null,
+
+    // NUEVO CAMPO PARA EL GRUPO MUSCULAR PRINCIPAL
+    @ColumnInfo(name = "main_muscle_group")
+    var mainMuscleGroup: String? = null,
 
     @ColumnInfo(name = "start_time")
     val startTime: Date,

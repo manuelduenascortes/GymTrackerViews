@@ -4,8 +4,12 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi // Necesario para flatMapLatest
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest // Necesario para cambiar el Flow basado en otro
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -15,9 +19,25 @@ import java.util.Date
 // import com.example.gymtrackerviews.model.WorkoutSummary
 // import com.example.gymtrackerviews.data.WorkoutDao
 
+@OptIn(ExperimentalCoroutinesApi::class) // Necesario para flatMapLatest
 class WorkoutListViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
 
-    val allWorkoutSummaries: StateFlow<List<WorkoutSummary>> = workoutDao.getAllWorkoutSummaries()
+    // StateFlow para el filtro de grupo muscular actual.
+    // Null significa que no hay filtro (mostrar todos).
+    private val _muscleGroupFilter = MutableStateFlow<String?>(null)
+    val muscleGroupFilter: StateFlow<String?> = _muscleGroupFilter.asStateFlow()
+
+    // allWorkoutSummaries ahora reacciona al _muscleGroupFilter
+    val allWorkoutSummaries: StateFlow<List<WorkoutSummary>> = _muscleGroupFilter
+        .flatMapLatest { filter ->
+            if (filter.isNullOrBlank()) {
+                Log.d("WorkoutListVM", "Filtro nulo o vacío, obteniendo todos los summaries.")
+                workoutDao.getAllWorkoutSummaries()
+            } else {
+                Log.d("WorkoutListVM", "Filtrando summaries por grupo muscular: $filter")
+                workoutDao.getWorkoutSummariesByMuscleGroup(filter)
+            }
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
@@ -25,37 +45,41 @@ class WorkoutListViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
         )
 
     /**
-     * Inserta un nuevo workout con un nombre opcional y devuelve su ID.
-     * Esta es una función 'suspend' porque la inserción en la base de datos es asíncrona.
-     * Devuelve el ID del workout insertado, o -1L si hubo un error.
+     * Establece el filtro de grupo muscular.
+     * Pasa null o una cadena vacía para quitar el filtro.
      */
-    suspend fun insertNewWorkoutWithNameAndGetId(workoutName: String?): Long {
-        // Si el nombre está vacío, lo tratamos como nulo para la base de datos.
+    fun setMuscleGroupFilter(muscleGroup: String?) {
+        _muscleGroupFilter.value = if (muscleGroup.isNullOrBlank()) null else muscleGroup
+        Log.d("WorkoutListVM", "Filtro establecido a: ${_muscleGroupFilter.value}")
+    }
+
+
+    suspend fun insertNewWorkoutWithNameAndGetId(workoutName: String?, mainMuscleGroup: String?): Long {
         val nameToSave = if (workoutName.isNullOrBlank()) null else workoutName
+        val muscleGroupToSave = if (mainMuscleGroup.isNullOrBlank()) null else mainMuscleGroup
 
         val newWorkout = Workout(
-            name = nameToSave, // Usamos el nombre proporcionado
+            name = nameToSave,
+            mainMuscleGroup = muscleGroupToSave,
             startTime = Date()
         )
         var newWorkoutId = -1L
         try {
             newWorkoutId = workoutDao.insertWorkout(newWorkout)
-            Log.d("WorkoutListViewModel", "Nuevo workout insertado con ID: $newWorkoutId, Nombre: $nameToSave")
+            Log.d("WorkoutListViewModel", "Nuevo workout insertado con ID: $newWorkoutId, Nombre: $nameToSave, Grupo: $muscleGroupToSave")
         } catch (e: Exception) {
-            Log.e("WorkoutListViewModel", "Error inserting workout with name", e)
+            Log.e("WorkoutListViewModel", "Error inserting workout with name and muscle group", e)
         }
         return newWorkoutId
     }
 
-    // Mantenemos el insertNewWorkout original por si lo usas en otro sitio,
-    // aunque ahora el FAB debería usar el nuevo método con nombre.
-    fun insertNewWorkout() {
+    fun insertNewWorkout() { // Este método ya no se usa desde el FAB, pero lo mantenemos por si acaso
         viewModelScope.launch {
-            val newWorkout = Workout(startTime = Date()) // Crea un workout sin nombre
+            val newWorkout = Workout(startTime = Date())
             try {
                 workoutDao.insertWorkout(newWorkout)
             } catch (e: Exception) {
-                Log.e("WorkoutListViewModel", "Error inserting workout (sin devolver ID y sin nombre)", e)
+                Log.e("WorkoutListViewModel", "Error inserting workout (sin devolver ID, nombre, ni grupo)", e)
             }
         }
     }

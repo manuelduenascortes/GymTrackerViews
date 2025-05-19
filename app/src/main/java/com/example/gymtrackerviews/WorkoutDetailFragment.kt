@@ -5,7 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter // Necesario para el AutoCompleteTextView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -17,7 +17,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.gymtrackerviews.databinding.DialogAddSetBinding // IMPORTANTE: Import para el binding del diálogo de añadir serie
+import com.example.gymtrackerviews.databinding.DialogAddSetBinding // IMPORTANTE: Para el diálogo de añadir/editar serie
 import com.example.gymtrackerviews.databinding.DialogEditWorkoutNameBinding
 import com.example.gymtrackerviews.databinding.FragmentWorkoutDetailBinding
 // TODO: Asegúrate de importar tus clases necesarias.
@@ -28,12 +28,13 @@ import com.example.gymtrackerviews.databinding.FragmentWorkoutDetailBinding
 // import com.example.gymtrackerviews.WorkoutDetailViewModel
 // import com.example.gymtrackerviews.WorkoutDetailViewModelFactory
 // import com.example.gymtrackerviews.GymTrackerApplication
+import com.example.gymtrackerviews.R // Para R.array.default_exercise_list
 
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.Date // Necesario para el viewModel.finishWorkout
+import java.util.Date
 
 class WorkoutDetailFragment : Fragment() {
 
@@ -78,9 +79,8 @@ class WorkoutDetailFragment : Fragment() {
             onSetDeleteClick = { workoutSetToDelete ->
                 Log.d("WorkoutDetailFragment", "Set Delete Clicked - Set ID: ${workoutSetToDelete.id}")
                 if (viewModel.workout.value?.endTime == null) {
-                    // TODO: Considerar mostrar un diálogo de confirmación aquí antes de borrar
-                    viewModel.deleteWorkoutSet(workoutSetToDelete)
-                    context?.let { Toast.makeText(it, "Serie borrada", Toast.LENGTH_SHORT).show()}
+                    // Mostrar diálogo de confirmación antes de borrar
+                    showDeleteSetConfirmationDialog(workoutSetToDelete)
                 } else {
                     context?.let { Toast.makeText(it, "Workout finalizado, no se puede borrar.", Toast.LENGTH_SHORT).show() }
                 }
@@ -170,7 +170,7 @@ class WorkoutDetailFragment : Fragment() {
 
         binding.buttonFinishWorkout.setOnClickListener {
             val notes = binding.editTextWorkoutNotes.text.toString().trim()
-            viewModel.finishWorkout(notes) // El ViewModel ahora actualiza el estado
+            viewModel.finishWorkout(notes)
             context?.let { Toast.makeText(it, "Workout finalizado", Toast.LENGTH_SHORT).show() }
         }
 
@@ -217,7 +217,7 @@ class WorkoutDetailFragment : Fragment() {
 
     // MÉTODO showAddOrEditSetDialog IMPLEMENTADO COMPLETAMENTE
     private fun showAddOrEditSetDialog(existingSet: WorkoutSet?) {
-        if (!isAdded || context == null) { // Comprobación de seguridad
+        if (!isAdded || context == null) {
             Log.w("WorkoutDetailFragment", "Fragment not added or context is null in showAddOrEditSetDialog")
             return
         }
@@ -229,24 +229,21 @@ class WorkoutDetailFragment : Fragment() {
 
         // Configuración del AutoCompleteTextView para nombres de ejercicios
         try {
-            // TODO: Asegúrate de tener un string-array llamado 'default_exercise_list' en tus resources (ej. res/values/arrays.xml)
-            // <string-array name="default_exercise_list">
-            //     <item>Press de Banca</item>
-            //     <item>Sentadilla</item>
-            //     ...
-            // </string-array>
+            // TODO: Asegúrate de tener un string-array llamado 'default_exercise_list' en res/values/arrays.xml
             val exercises: Array<String> = resources.getStringArray(R.array.default_exercise_list)
             val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, exercises)
-            dialogBinding.editTextExerciseName.setAdapter(adapter) // Asume que el ID es editTextExerciseName en dialog_add_set.xml
+            // TODO: Asegúrate de que el ID en dialog_add_set.xml es 'editTextExerciseName' y es un AutoCompleteTextView
+            dialogBinding.editTextExerciseName.setAdapter(adapter)
             Log.d("WorkoutDetailFragment", "AutoCompleteTextView adapter set for exercises.")
         } catch (e: Exception) {
             Log.e("WorkoutDetailFragment", "Error setting AutoCompleteTextView adapter", e)
-            // Podrías mostrar un Toast aquí si el array no se encuentra, o simplemente dejar que el campo sea un EditText normal.
+            context?.let { Toast.makeText(it, "Error al cargar lista de ejercicios.", Toast.LENGTH_SHORT).show()}
         }
 
         // Si estamos editando, pre-rellenar los campos
         if (isEditing && existingSet != null) {
-            dialogBinding.editTextExerciseName.setText(existingSet.exerciseName, false) // El 'false' es para no filtrar con el adapter
+            // TODO: Asegúrate de que los IDs en dialog_add_set.xml son correctos
+            dialogBinding.editTextExerciseName.setText(existingSet.exerciseName, false) // false para no filtrar
             dialogBinding.editTextReps.setText(existingSet.repetitions.toString())
             dialogBinding.editTextWeight.setText(existingSet.weight.toString())
             Log.d("WorkoutDetailFragment", "Dialog pre-filled for editing set ID: ${existingSet.id}")
@@ -254,9 +251,10 @@ class WorkoutDetailFragment : Fragment() {
 
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle(if (isEditing) "Editar Serie" else "Añadir Nueva Serie")
-        builder.setView(dialogBinding.root) // Usar la vista inflada del diálogo
+        builder.setView(dialogBinding.root)
 
         builder.setPositiveButton(if (isEditing) "Actualizar" else "Guardar") { dialog, _ ->
+            // TODO: Asegúrate de que los IDs en dialog_add_set.xml son correctos
             val exerciseName = dialogBinding.editTextExerciseName.text.toString().trim()
             val repsString = dialogBinding.editTextReps.text.toString()
             val weightString = dialogBinding.editTextWeight.text.toString()
@@ -281,16 +279,15 @@ class WorkoutDetailFragment : Fragment() {
 
                 if (isEditing && existingSet != null) {
                     val updatedSet = existingSet.copy(exerciseName = exerciseName, repetitions = reps, weight = weight)
-                    viewModel.updateSet(updatedSet) // Llama al método del ViewModel
+                    viewModel.updateSet(updatedSet)
                     context?.let { Toast.makeText(it, "Serie actualizada", Toast.LENGTH_SHORT).show() }
                 } else {
-                    viewModel.insertSet(exerciseName, reps, weight) // Llama al método del ViewModel
+                    viewModel.insertSet(exerciseName, reps, weight)
                     context?.let { Toast.makeText(it, "Serie guardada", Toast.LENGTH_SHORT).show() }
                 }
                 dialog.dismiss() // Cerrar el diálogo solo si todo fue bien
             } catch (e: NumberFormatException) {
                 context?.let { Toast.makeText(it, "Introduce números válidos para Reps y Peso", Toast.LENGTH_SHORT).show() }
-                // No cerrar el diálogo si hay error de formato
             }
         }
         builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.dismiss() }
@@ -302,6 +299,20 @@ class WorkoutDetailFragment : Fragment() {
             Log.e("WorkoutDetailFragment", "Error showing Add/Edit dialog", e)
             context?.let { Toast.makeText(it, "Error al mostrar el diálogo de serie", Toast.LENGTH_SHORT).show() }
         }
+    }
+
+    private fun showDeleteSetConfirmationDialog(setToDelete: WorkoutSet) {
+        if (!isAdded || context == null) return
+        AlertDialog.Builder(requireContext())
+            .setTitle("Confirmar Borrado")
+            .setMessage("¿Seguro que quieres borrar esta serie?\n(${setToDelete.exerciseName}: ${setToDelete.repetitions} reps @ ${setToDelete.weight} kg)")
+            .setPositiveButton("Borrar") { _, _ ->
+                viewModel.deleteWorkoutSet(setToDelete)
+                Log.d("WorkoutDetailFragment", "Delete confirmed for set ID: ${setToDelete.id}")
+                context?.let { Toast.makeText(it, "Serie borrada", Toast.LENGTH_SHORT).show() }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
 
