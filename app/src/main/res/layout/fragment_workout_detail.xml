@@ -11,8 +11,10 @@
         android:id="@+id/imageViewWorkoutDetailBackground"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:src="@mipmap/ic_launcher_round" android:scaleType="centerInside"
-        android:alpha="0.07" app:layout_constraintTop_toTopOf="parent"
+        android:src="@mipmap/ic_launcher_round"
+        android:scaleType="centerInside"
+        android:alpha="0.07"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -48,9 +50,12 @@
 
             <ImageButton
                 android:id="@+id/buttonEditWorkoutName"
-                android:layout_width="48dp"
+                android:layout_width="wrap_content"
                 android:layout_height="0dp"
+                android:minWidth="48dp"
                 android:background="@drawable/bg_translucent_surface_rounded"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
                 android:contentDescription="Editar nombre del entrenamiento"
                 app:srcCompat="@drawable/edit_24px"
                 app:tint="?attr/colorPrimary"
@@ -87,9 +92,7 @@
                 android:layout_marginBottom="8dp"
                 android:background="@drawable/bg_translucent_surface_rounded"
                 android:padding="8dp"
-                android:minHeight="150dp"
-                app:layout_constraintHeight_default="wrap"
-                app:layout_constraintHeight_min="150dp"
+                android:minHeight="100dp"
                 app:layout_constraintTop_toBottomOf="@+id/textViewDetailEndTime"
                 app:layout_constraintBottom_toTopOf="@+id/editTextWorkoutNotes"
                 app:layout_constraintStart_toStartOf="parent"
@@ -99,7 +102,7 @@
             <TextView
                 android:id="@+id/textViewEmptySets"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:gravity="center"
                 android:padding="16dp"
                 android:text="@string/no_sets_message"
@@ -118,29 +121,40 @@
                 style="?attr/textInputStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:background="@drawable/bg_translucent_surface_rounded"
                 android:padding="12dp"
                 android:hint="Añadir notas sobre el workout..."
                 android:inputType="textMultiLine|textCapSentences"
-                android:minHeight="72dp"
+                android:minHeight="56dp"
+                android:maxLines="4"
                 android:gravity="top|start"
                 android:textColor="?attr/colorOnSurface"
                 android:textColorHint="?attr/colorOnSurfaceVariant"
+                app:layout_constraintTop_toBottomOf="@+id/recyclerViewSets"
                 app:layout_constraintBottom_toTopOf="@+id/timerLabel"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
 
-            <TextView
-                android:id="@+id/timerLabel"
-                android:layout_width="wrap_content"
+            <Button
+                android:id="@+id/buttonFinishWorkout"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Descanso:"
-                android:textAppearance="?attr/textAppearanceLabelMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:layout_marginBottom="4dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintBottom_toTopOf="@+id/timerLayoutContainer" />
+                android:text="Finalizar Entrenamiento" android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <Button
+                android:id="@+id/buttonAddSet"
+                style="?attr/materialButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Añadir Serie"
+                app:layout_constraintBottom_toTopOf="@+id/buttonFinishWorkout" app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
 
             <LinearLayout
                 android:id="@+id/timerLayoutContainer"
@@ -150,8 +164,7 @@
                 android:background="@drawable/bg_translucent_surface_rounded"
                 android:padding="8dp"
                 android:layout_marginBottom="8dp"
-                app:layout_constraintBottom_toTopOf="@+id/buttonFinishWorkout"
-                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/buttonAddSet" app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
 
                 <LinearLayout
@@ -166,7 +179,7 @@
                         style="@style/Widget.Material3.Button.IconButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:icon="@android:drawable/ic_media_previous"
+                        app:icon="@drawable/fast_rewind_24px"
                         app:iconTint="?attr/colorPrimary"
                         tools:ignore="SpeakableTextPresentCheck" />
 
@@ -176,7 +189,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        app:icon="@android:drawable/ic_media_play"
+                        app:icon="@drawable/play_arrow_24px"
                         tools:ignore="SpeakableTextPresentCheck" />
 
                     <TextView
@@ -197,7 +210,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        app:icon="@android:drawable/ic_menu_revert"
+                        app:icon="@drawable/update_24px"
                         app:iconTint="?attr/colorPrimary"
                         tools:ignore="SpeakableTextPresentCheck" />
 
@@ -206,33 +219,22 @@
                         style="@style/Widget.Material3.Button.IconButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:icon="@android:drawable/ic_media_next"
+                        app:icon="@drawable/fast_forward_24px"
                         app:iconTint="?attr/colorPrimary"
                         tools:ignore="SpeakableTextPresentCheck" />
                 </LinearLayout>
             </LinearLayout>
 
-            <Button
-                android:id="@+id/buttonFinishWorkout"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/timerLabel"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Finalizar Workout"
-                android:visibility="visible"
-                app:layout_constraintBottom_toTopOf="@+id/buttonAddSet"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <Button
-                android:id="@+id/buttonAddSet"
-                style="?attr/materialButtonStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="Añadir Serie"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:text="Descanso:"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="4dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/timerLayoutContainer" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>

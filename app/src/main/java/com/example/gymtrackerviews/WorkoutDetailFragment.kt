@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gymtrackerviews.databinding.DialogAddSetBinding
 import com.example.gymtrackerviews.databinding.DialogEditWorkoutNameBinding
 import com.example.gymtrackerviews.databinding.FragmentWorkoutDetailBinding
-import com.example.gymtrackerviews.R
+import com.example.gymtrackerviews.R // Importante para R.drawable
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -129,21 +129,17 @@ class WorkoutDetailFragment : Fragment() {
 
                             val canOperateTimer = !isFinished
                             binding.buttonTimerToggle.isEnabled = canOperateTimer
-                            // <<< CORRECCIÓN EN LA LÓGICA DE HABILITACIÓN DEL BOTÓN RESET >>>
                             binding.buttonTimerReset.isEnabled = canOperateTimer &&
                                     (viewModel.isTimerRunning.value || viewModel.timerValue.value != viewModel.startRestTimeInMillis.value)
-                            // <<< FIN CORRECCIÓN >>>
                             binding.buttonTimerDecrease.isEnabled = canOperateTimer && !viewModel.isTimerRunning.value
                             binding.buttonTimerIncrease.isEnabled = canOperateTimer && !viewModel.isTimerRunning.value
 
-                            // Deshabilitar decrease/increase si se llega a los límites, incluso si el timer no está corriendo
                             if (viewModel.startRestTimeInMillis.value <= viewModel.minRestTimeMillis) {
                                 binding.buttonTimerDecrease.isEnabled = false
                             }
                             if (viewModel.startRestTimeInMillis.value >= viewModel.maxRestTimeMillis) {
                                 binding.buttonTimerIncrease.isEnabled = false
                             }
-
 
                             if (!binding.editTextWorkoutNotes.hasFocus()) {
                                 binding.editTextWorkoutNotes.setText(it.notes ?: "")
@@ -173,9 +169,6 @@ class WorkoutDetailFragment : Fragment() {
                         val seconds = (timeInMillis / 1000) % 60
                         binding.textViewTimer.text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
 
-                        // <<< NUEVO: Actualizar el estado del botón de reset también cuando cambia timerValue >>>
-                        // Esto es importante si el timer llega a 0 y se resetea automáticamente a startRestTimeInMillis
-                        // o si se pausa y luego se resetea.
                         val currentWorkout = viewModel.workout.value
                         val isFinished = currentWorkout?.endTime != null
                         val canOperateTimer = !isFinished
@@ -186,17 +179,17 @@ class WorkoutDetailFragment : Fragment() {
 
                 launch {
                     viewModel.isTimerRunning.collect { isRunning ->
-                        val iconResId = if (isRunning) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
+                        // <<< ICONOS PLAY/PAUSE CORREGIDOS AQUÍ para usar tus archivos XML >>>
+                        val iconResId = if (isRunning) R.drawable.pause_24px else R.drawable.play_arrow_24px
                         binding.buttonTimerToggle.setIconResource(iconResId)
+                        // <<< FIN CORRECCIÓN ICONOS PLAY/PAUSE >>>
 
-                        // <<< NUEVO: Actualizar el estado del botón de reset también cuando cambia isTimerRunning >>>
                         val currentWorkout = viewModel.workout.value
                         val isFinished = currentWorkout?.endTime != null
                         val canOperateTimer = !isFinished
                         binding.buttonTimerReset.isEnabled = canOperateTimer &&
                                 (isRunning || viewModel.timerValue.value != viewModel.startRestTimeInMillis.value)
 
-                        // También actualizamos decrease/increase aquí
                         binding.buttonTimerDecrease.isEnabled = canOperateTimer && !isRunning
                         binding.buttonTimerIncrease.isEnabled = canOperateTimer && !isRunning
                         if (viewModel.startRestTimeInMillis.value <= viewModel.minRestTimeMillis) {
