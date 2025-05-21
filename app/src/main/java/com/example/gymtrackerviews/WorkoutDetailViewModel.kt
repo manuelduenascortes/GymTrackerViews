@@ -34,10 +34,10 @@ class WorkoutDetailViewModel(
     private val _isTimerRunning = MutableStateFlow(false)
     val isTimerRunning: StateFlow<Boolean> = _isTimerRunning.asStateFlow()
 
-    private val _startRestTimeInMillis = MutableStateFlow(90000L)
+    private val _startRestTimeInMillis = MutableStateFlow(90000L) // 1:30 por defecto (90000 Long)
     val startRestTimeInMillis: StateFlow<Long> = _startRestTimeInMillis.asStateFlow()
 
-    private val _timerValue = MutableStateFlow(_startRestTimeInMillis.value)
+    private val _timerValue = MutableStateFlow(_startRestTimeInMillis.value) // Inicializar con el valor de startRestTime
     val timerValue: StateFlow<Long> = _timerValue.asStateFlow()
 
     private val timerStepMillis: Long = 15000L
@@ -45,22 +45,29 @@ class WorkoutDetailViewModel(
     val maxRestTimeMillis: Long = 300000L
 
     init {
+        Log.i("WorkoutDetailVM", "ViewModel initialized for workoutId: $workoutId")
         loadWorkoutDetails()
         loadWorkoutSets()
+        Log.d("WorkoutDetailVM", "Initial timerValue: ${_timerValue.value}, startRestTime: ${_startRestTimeInMillis.value}")
     }
 
     private fun loadWorkoutDetails() {
         viewModelScope.launch {
             workoutDao.getWorkoutFlowById(workoutId).collectLatest {
                 _workout.value = it
+                Log.d("WorkoutDetailVM", "Workout details loaded: ${it?.name}")
+                // Si el workout está finalizado, asegurar que el timer no esté corriendo
+                if (it?.endTime != null && _isTimerRunning.value) {
+                    pauseTimer()
+                    Log.d("WorkoutDetailVM", "Workout is finished, pausing timer if it was running.")
+                }
             }
         }
     }
 
     private fun loadWorkoutSets() {
         viewModelScope.launch {
-            // CAMBIO AQUÍ: Usar el nombre correcto del método del DAO
-            workoutSetDao.getSetsForWorkout(workoutId).collectLatest { // Antes era getSetsForWorkoutFlow
+            workoutSetDao.getSetsForWorkout(workoutId).collectLatest {
                 _workoutSets.value = it.sortedBy { set -> set.timestamp }
             }
         }
@@ -98,7 +105,7 @@ class WorkoutDetailViewModel(
             if (currentWorkout != null && currentWorkout.endTime == null) {
                 val notesToSave = if (finalNotes.isNullOrBlank()) null else finalNotes
                 val finishedWorkout = currentWorkout.copy(
-                    endTime = Date(), // endTime es Date
+                    endTime = Date(),
                     notes = notesToSave
                 )
                 workoutDao.updateWorkout(finishedWorkout)
@@ -116,7 +123,7 @@ class WorkoutDetailViewModel(
                     exerciseName = exerciseName,
                     repetitions = reps,
                     weight = weight,
-                    timestamp = Date() // CAMBIO AQUÍ: Usar Date() para el timestamp
+                    timestamp = Date()
                 )
                 workoutSetDao.insertSet(newSet)
                 Log.d("WorkoutDetailVM", "Nueva serie añadida: $exerciseName")
@@ -127,7 +134,7 @@ class WorkoutDetailViewModel(
     fun updateSet(workoutSet: WorkoutSet) {
         viewModelScope.launch {
             if (_workout.value?.endTime == null) {
-                workoutSetDao.updateSet(workoutSet) // Asumiendo que updateSet en DAO está bien
+                workoutSetDao.updateSet(workoutSet)
                 Log.d("WorkoutDetailVM", "Serie actualizada: ${workoutSet.exerciseName}")
             }
         }
@@ -136,14 +143,18 @@ class WorkoutDetailViewModel(
     fun deleteWorkoutSet(workoutSet: WorkoutSet) {
         viewModelScope.launch {
             if (_workout.value?.endTime == null) {
-                workoutSetDao.deleteSet(workoutSet) // Asumiendo que deleteSet en DAO está bien
+                workoutSetDao.deleteSet(workoutSet)
                 Log.d("WorkoutDetailVM", "Serie borrada: ${workoutSet.exerciseName}")
             }
         }
     }
 
     fun toggleTimer() {
-        if (_workout.value?.endTime != null) return
+        Log.d("WorkoutDetailVM", "toggleTimer called. Workout finished: ${(_workout.value?.endTime != null)}. Timer running: ${_isTimerRunning.value}")
+        if (_workout.value?.endTime != null) {
+            Log.d("WorkoutDetailVM", "Workout already finished, not starting timer.")
+            return
+        }
         if (_isTimerRunning.value) {
             pauseTimer()
         } else {
@@ -152,52 +163,69 @@ class WorkoutDetailViewModel(
     }
 
     private fun startTimer() {
-        if (_isTimerRunning.value || _workout.value?.endTime == null) return
+        Log.d("WorkoutDetailVM", "startTimer called. Current isTimerRunning: ${_isTimerRunning.value}, workout finished: ${(_workout.value?.endTime != null)}, timerValue: ${_timerValue.value}")
+        if (_isTimerRunning.value || _workout.value?.endTime != null) {
+            Log.w("WorkoutDetailVM", "startTimer: Not starting, already running or workout finished.")
+            return
+        }
+        if (_timerValue.value <= 0) {
+            Log.w("WorkoutDetailVM", "startTimer: Not starting, timerValue is 0 or less. Resetting to startRestTime.")
+            _timerValue.value = _startRestTimeInMillis.value // Asegurar que hay tiempo para iniciar
+            if (_timerValue.value <= 0) { // Si startRestTime también es 0, no iniciar
+                Log.e("WorkoutDetailVM", "startTimer: startRestTimeInMillis is also 0. Cannot start timer.")
+                return
+            }
+        }
+
         countDownTimer?.cancel()
         countDownTimer = object : CountDownTimer(_timerValue.value, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 _timerValue.value = millisUntilFinished
+                // Log.v("WorkoutDetailVM", "Timer tick: ${millisUntilFinished / 1000}s left") // Log muy verboso
             }
             override fun onFinish() {
+                Log.d("WorkoutDetailVM", "Timer finished.")
                 _isTimerRunning.value = false
                 _timerValue.value = _startRestTimeInMillis.value
-                Log.d("WorkoutDetailVM", "Timer finished.")
             }
         }.start()
         _isTimerRunning.value = true
-        Log.d("WorkoutDetailVM", "Timer started.")
+        Log.i("WorkoutDetailVM", "Timer actually started with duration: ${_timerValue.value / 1000}s")
     }
 
     private fun pauseTimer() {
         countDownTimer?.cancel()
         _isTimerRunning.value = false
-        Log.d("WorkoutDetailVM", "Timer paused.")
+        Log.i("WorkoutDetailVM", "Timer paused. Current timeLeft: ${_timerValue.value / 1000}s")
     }
 
     fun resetTimer() {
+        Log.d("WorkoutDetailVM", "resetTimer called. Workout finished: ${(_workout.value?.endTime != null)}")
         if (_workout.value?.endTime != null) return
         pauseTimer()
         _timerValue.value = _startRestTimeInMillis.value
-        Log.d("WorkoutDetailVM", "Timer reset.")
+        Log.i("WorkoutDetailVM", "Timer reset to: ${_timerValue.value / 1000}s")
     }
 
     fun decreaseTimer() {
+        Log.d("WorkoutDetailVM", "decreaseTimer called. isTimerRunning: ${_isTimerRunning.value}, workout finished: ${(_workout.value?.endTime != null)}")
         if (_isTimerRunning.value || _workout.value?.endTime != null) return
         val newStartTime = (_startRestTimeInMillis.value - timerStepMillis).coerceAtLeast(minRestTimeMillis)
         if (newStartTime != _startRestTimeInMillis.value) {
             _startRestTimeInMillis.value = newStartTime
             _timerValue.value = _startRestTimeInMillis.value
-            Log.d("WorkoutDetailVM", "Timer decreased. New start time: ${newStartTime / 1000}s")
+            Log.i("WorkoutDetailVM", "Timer decreased. New start time: ${newStartTime / 1000}s")
         }
     }
 
     fun increaseTimer() {
+        Log.d("WorkoutDetailVM", "increaseTimer called. isTimerRunning: ${_isTimerRunning.value}, workout finished: ${(_workout.value?.endTime != null)}")
         if (_isTimerRunning.value || _workout.value?.endTime != null) return
         val newStartTime = (_startRestTimeInMillis.value + timerStepMillis).coerceAtMost(maxRestTimeMillis)
         if (newStartTime != _startRestTimeInMillis.value) {
             _startRestTimeInMillis.value = newStartTime
             _timerValue.value = _startRestTimeInMillis.value
-            Log.d("WorkoutDetailVM", "Timer increased. New start time: ${newStartTime / 1000}s")
+            Log.i("WorkoutDetailVM", "Timer increased. New start time: ${newStartTime / 1000}s")
         }
     }
 
