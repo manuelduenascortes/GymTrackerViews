@@ -16,9 +16,9 @@ import com.example.gymtrackerviews.databinding.FragmentWorkoutListBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.collectLatest // <<<--- IMPORT AÑADIDO/VERIFICADO AQUÍ
+import kotlinx.coroutines.flow.collectLatest
+// import kotlinx.coroutines.flow.distinctUntilChanged // No parece usarse
+// import kotlinx.coroutines.flow.map // No parece usarse
 import kotlinx.coroutines.launch
 
 import androidx.core.view.MenuHost
@@ -46,7 +46,6 @@ class WorkoutListFragment : Fragment() {
     private lateinit var workoutAdapter: WorkoutAdapter
     private lateinit var auth: FirebaseAuth
 
-    // Adaptador para el AutoCompleteTextView del filtro
     private lateinit var muscleGroupFilterAdapter: ArrayAdapter<String>
 
     override fun onCreateView(
@@ -62,7 +61,7 @@ class WorkoutListFragment : Fragment() {
         auth = Firebase.auth
         setupRecyclerView()
         setupFab()
-        setupFilter() // NUEVO: Configurar el filtro
+        setupFilter()
         observeViewModel()
         setupMenu()
     }
@@ -90,6 +89,17 @@ class WorkoutListFragment : Fragment() {
                         }
                         true
                     }
+                    // NUEVO CASE PARA BIBLIOTECA DE EJERCICIOS
+                    R.id.action_exercise_library -> {
+                        if (isAdded) {
+                            try {
+                                findNavController().navigate(R.id.action_workoutListFragment_to_exerciseLibraryFragment)
+                            } catch (e: IllegalStateException) {
+                                Log.e("WorkoutListFragment", "Navigation to exercise library failed: ${e.message}")
+                            }
+                        }
+                        true
+                    }
                     else -> false
                 }
             }
@@ -100,7 +110,6 @@ class WorkoutListFragment : Fragment() {
         auth.signOut()
         if (isAdded) {
             try {
-                // Limpiar filtro al cerrar sesión
                 viewModel.setMuscleGroupFilter(null)
                 findNavController().navigate(R.id.action_workoutListFragment_to_splashFragment)
             } catch (e: IllegalStateException) {
@@ -165,7 +174,6 @@ class WorkoutListFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.muscleGroupFilter.collectLatest { currentFilter ->
-                    // Solo actualizar el texto si es diferente para evitar bucles o perder el foco
                     if (binding.autoCompleteTextViewMuscleGroupFilter.text.toString() != (currentFilter ?: "")) {
                         binding.autoCompleteTextViewMuscleGroupFilter.setText(currentFilter ?: "", false)
                     }
@@ -177,7 +185,7 @@ class WorkoutListFragment : Fragment() {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.allWorkoutSummaries.collectLatest { summaries -> // Uso de collectLatest
+                viewModel.allWorkoutSummaries.collectLatest { summaries ->
                     Log.d("WorkoutListFragment", "Workout summary list updated (filter: ${viewModel.muscleGroupFilter.value}). Count: ${summaries.size}")
                     workoutAdapter.submitList(summaries)
                     if (summaries.isEmpty()) {

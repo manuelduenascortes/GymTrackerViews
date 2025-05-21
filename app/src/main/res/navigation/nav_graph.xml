@@ -73,6 +73,9 @@
         <action
             android:id="@+id/action_workoutListFragment_to_statisticsFragment"
             app:destination="@id/statisticsFragment" />
+        <action
+            android:id="@+id/action_workoutListFragment_to_exerciseLibraryFragment"
+            app:destination="@id/exerciseLibraryFragment" />
     </fragment>
 
     <fragment
@@ -101,5 +104,11 @@
         android:name="com.example.gymtrackerviews.ui.statistics.StatisticsFragment"
         android:label="Estadísticas"
         tools:layout="@layout/fragment_statistics" />
+
+    <fragment
+        android:id="@+id/exerciseLibraryFragment"
+        android:name="com.example.gymtrackerviews.ui.library.ExerciseLibraryFragment"
+        android:label="Biblioteca de Ejercicios"
+        tools:layout="@layout/fragment_exercise_library" />
 
 </navigation>
