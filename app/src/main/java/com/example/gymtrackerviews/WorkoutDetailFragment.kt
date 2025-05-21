@@ -107,17 +107,13 @@ class WorkoutDetailFragment : Fragment() {
                 launch {
                     viewModel.workout.collectLatest { workout ->
                         workout?.let {
-                            // Actualizar el nombre del workout en el TextView del layout
                             binding.textViewWorkoutNameDetail.text = it.name ?: "Entrenamiento sin nombre"
-
-                            // <<< NUEVO: Lógica para cambiar el título de la Toolbar >>>
                             val toolbarTitle = if (it.endTime == null) {
                                 "Entrenamiento en curso"
                             } else {
                                 "Entrenamiento finalizado"
                             }
                             (activity as? AppCompatActivity)?.supportActionBar?.title = toolbarTitle
-                            // <<< FIN NUEVO >>>
 
                             val isFinished = it.endTime != null
                             binding.textViewDetailEndTime.visibility = if (isFinished) View.VISIBLE else View.GONE
@@ -133,11 +129,21 @@ class WorkoutDetailFragment : Fragment() {
 
                             val canOperateTimer = !isFinished
                             binding.buttonTimerToggle.isEnabled = canOperateTimer
-                            binding.buttonTimerReset.isEnabled = canOperateTimer && viewModel.timerValue.value < viewModel.startRestTimeInMillis.value
+                            // <<< CORRECCIÓN EN LA LÓGICA DE HABILITACIÓN DEL BOTÓN RESET >>>
+                            binding.buttonTimerReset.isEnabled = canOperateTimer &&
+                                    (viewModel.isTimerRunning.value || viewModel.timerValue.value != viewModel.startRestTimeInMillis.value)
+                            // <<< FIN CORRECCIÓN >>>
                             binding.buttonTimerDecrease.isEnabled = canOperateTimer && !viewModel.isTimerRunning.value
                             binding.buttonTimerIncrease.isEnabled = canOperateTimer && !viewModel.isTimerRunning.value
-                            if (viewModel.timerValue.value <= viewModel.minRestTimeMillis) binding.buttonTimerDecrease.isEnabled = false
-                            if (viewModel.timerValue.value >= viewModel.maxRestTimeMillis) binding.buttonTimerIncrease.isEnabled = false
+
+                            // Deshabilitar decrease/increase si se llega a los límites, incluso si el timer no está corriendo
+                            if (viewModel.startRestTimeInMillis.value <= viewModel.minRestTimeMillis) {
+                                binding.buttonTimerDecrease.isEnabled = false
+                            }
+                            if (viewModel.startRestTimeInMillis.value >= viewModel.maxRestTimeMillis) {
+                                binding.buttonTimerIncrease.isEnabled = false
+                            }
+
 
                             if (!binding.editTextWorkoutNotes.hasFocus()) {
                                 binding.editTextWorkoutNotes.setText(it.notes ?: "")
@@ -146,7 +152,6 @@ class WorkoutDetailFragment : Fragment() {
                     }
                 }
 
-                // ... (resto de los bloques launch para workoutSets, timerValue, isTimerRunning, exerciseNames sin cambios) ...
                 launch {
                     viewModel.workoutSets.collectLatest { sets: List<WorkoutSet> ->
                         val detailListItems = mutableListOf<WorkoutDetailListItem>()
@@ -167,6 +172,15 @@ class WorkoutDetailFragment : Fragment() {
                         val minutes = (timeInMillis / 1000) / 60
                         val seconds = (timeInMillis / 1000) % 60
                         binding.textViewTimer.text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+
+                        // <<< NUEVO: Actualizar el estado del botón de reset también cuando cambia timerValue >>>
+                        // Esto es importante si el timer llega a 0 y se resetea automáticamente a startRestTimeInMillis
+                        // o si se pausa y luego se resetea.
+                        val currentWorkout = viewModel.workout.value
+                        val isFinished = currentWorkout?.endTime != null
+                        val canOperateTimer = !isFinished
+                        binding.buttonTimerReset.isEnabled = canOperateTimer &&
+                                (viewModel.isTimerRunning.value || timeInMillis != viewModel.startRestTimeInMillis.value)
                     }
                 }
 
@@ -174,6 +188,23 @@ class WorkoutDetailFragment : Fragment() {
                     viewModel.isTimerRunning.collect { isRunning ->
                         val iconResId = if (isRunning) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
                         binding.buttonTimerToggle.setIconResource(iconResId)
+
+                        // <<< NUEVO: Actualizar el estado del botón de reset también cuando cambia isTimerRunning >>>
+                        val currentWorkout = viewModel.workout.value
+                        val isFinished = currentWorkout?.endTime != null
+                        val canOperateTimer = !isFinished
+                        binding.buttonTimerReset.isEnabled = canOperateTimer &&
+                                (isRunning || viewModel.timerValue.value != viewModel.startRestTimeInMillis.value)
+
+                        // También actualizamos decrease/increase aquí
+                        binding.buttonTimerDecrease.isEnabled = canOperateTimer && !isRunning
+                        binding.buttonTimerIncrease.isEnabled = canOperateTimer && !isRunning
+                        if (viewModel.startRestTimeInMillis.value <= viewModel.minRestTimeMillis) {
+                            binding.buttonTimerDecrease.isEnabled = false
+                        }
+                        if (viewModel.startRestTimeInMillis.value >= viewModel.maxRestTimeMillis) {
+                            binding.buttonTimerIncrease.isEnabled = false
+                        }
                     }
                 }
 
@@ -206,7 +237,6 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // ... (sin cambios en setupClickListeners) ...
         binding.buttonAddSet.setOnClickListener {
             if (binding.buttonAddSet.isEnabled) {
                 showAddOrEditSetDialog(null)
@@ -226,9 +256,10 @@ class WorkoutDetailFragment : Fragment() {
         }
 
         binding.buttonTimerToggle.setOnClickListener { if(viewModel.workout.value?.endTime == null) viewModel.toggleTimer() }
-        binding.buttonTimerDecrease.setOnClickListener { if(viewModel.workout.value?.endTime == null) viewModel.decreaseTimer() }
-        binding.buttonTimerIncrease.setOnClickListener { if(viewModel.workout.value?.endTime == null) viewModel.increaseTimer() }
+        binding.buttonTimerDecrease.setOnClickListener { if(viewModel.workout.value?.endTime == null && !viewModel.isTimerRunning.value) viewModel.decreaseTimer() }
+        binding.buttonTimerIncrease.setOnClickListener { if(viewModel.workout.value?.endTime == null && !viewModel.isTimerRunning.value) viewModel.increaseTimer() }
         binding.buttonTimerReset.setOnClickListener { if(viewModel.workout.value?.endTime == null) viewModel.resetTimer() }
+
 
         binding.editTextWorkoutNotes.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus && isAdded) {
@@ -239,7 +270,6 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun showEditWorkoutNameDialog() {
-        // ... (sin cambios en showEditWorkoutNameDialog) ...
         if (!isAdded || context == null) return
 
         val dialogBinding = DialogEditWorkoutNameBinding.inflate(LayoutInflater.from(requireContext()))
@@ -262,7 +292,6 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun showAddOrEditSetDialog(existingSet: WorkoutSet?) {
-        // ... (sin cambios en showAddOrEditSetDialog) ...
         if (!isAdded || context == null) {
             Log.w("WorkoutDetailFragment", "Fragment not added or context is null in showAddOrEditSetDialog")
             return
@@ -330,7 +359,6 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun showDeleteSetConfirmationDialog(setToDelete: WorkoutSet) {
-        // ... (sin cambios en showDeleteSetConfirmationDialog) ...
         if (!isAdded || context == null) return
         AlertDialog.Builder(requireContext())
             .setTitle("Confirmar Borrado")

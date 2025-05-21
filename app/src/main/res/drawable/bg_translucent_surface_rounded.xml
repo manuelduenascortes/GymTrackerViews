@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Usaremos el color de superficie de tu tema con alfa.
+         md_theme_surface es #2C2C2E.
+         Un valor alfa como #B3 (aprox. 70% opacidad) o #CC (aprox. 80%) podría funcionar.
+         #B32C2C2E sería md_theme_surface con 70% de opacidad.
+         Puedes ajustar el #B3 por otro valor alfa si quieres más o menos transparencia.
+         Por ejemplo, #99 para ~60%, #CC para ~80%, #E6 para ~90% de opacidad. -->
+    <solid android:color="#B32C2C2E"/>
+    <corners android:radius="12dp"/> </shape>
