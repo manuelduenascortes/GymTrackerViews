@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+// import androidx.appcompat.app.AppCompatActivity // Ya no es necesario si solo se usaba para la toolbar
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.gymtrackerviews.R
@@ -14,15 +15,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth // Importación para ktx
 import com.google.firebase.ktx.Firebase // Importación para ktx
 
-/**
- * Un Fragment para manejar el registro de nuevos usuarios.
- */
 class RegisterFragment : Fragment() {
 
     private var _binding: FragmentRegisterBinding? = null
     private val binding get() = _binding!!
 
-    // Declarar una instancia de FirebaseAuth
     private lateinit var auth: FirebaseAuth
 
     override fun onCreateView(
@@ -36,7 +33,8 @@ class RegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inicializar FirebaseAuth
+        // Ya NO se oculta la Toolbar aquí
+
         auth = Firebase.auth
 
         binding.buttonRegister.setOnClickListener {
@@ -44,7 +42,6 @@ class RegisterFragment : Fragment() {
             val password = binding.editTextPasswordRegister.text.toString().trim()
             val confirmPassword = binding.editTextConfirmPasswordRegister.text.toString().trim()
 
-            // Usar 'context?.let' para los Toasts iniciales para mayor seguridad
             if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                 context?.let { ctx ->
                     Toast.makeText(ctx, "Por favor, completa todos los campos.", Toast.LENGTH_SHORT).show()
@@ -66,34 +63,24 @@ class RegisterFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // Aquí podrías mostrar un ProgressBar si lo tuvieras en tu XML
-            // if (isAdded) binding.progressBarRegister.visibility = View.VISIBLE
-
             auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(requireActivity()) { task -> // Usar requireActivity() como LifecycleOwner es una buena práctica
-                    // Asegurarse de que el fragment todavía está añadido y su vista (_binding) existe
-                    // antes de interactuar con la UI o navegar.
+                .addOnCompleteListener(requireActivity()) { task ->
                     if (!isAdded || _binding == null) {
                         Log.w("RegisterFragment", "Fragment not added or view destroyed when registration completed.")
                         return@addOnCompleteListener
                     }
 
-                    // Ocultar ProgressBar
-                    // binding.progressBarRegister.visibility = View.GONE
-
                     if (task.isSuccessful) {
                         Log.d("RegisterFragment", "createUserWithEmail:success")
                         val user = auth.currentUser
-                        // Usar context?.let para el Toast
                         context?.let { ctx ->
                             Toast.makeText(ctx, "Registro exitoso: ${user?.email}", Toast.LENGTH_SHORT).show()
                         }
 
                         user?.sendEmailVerification()
-                            ?.addOnCompleteListener(requireActivity()) { verificationTask -> // Usar requireActivity() también aquí
-                                // De nuevo, comprobar si el fragment está activo y el contexto existe antes de mostrar el Toast
-                                if (isAdded && _binding != null) { // Comprobamos _binding para asegurarnos que la vista sigue ahí
-                                    context?.let { ctx -> // Usamos context?.let
+                            ?.addOnCompleteListener(requireActivity()) { verificationTask ->
+                                if (isAdded && _binding != null) {
+                                    context?.let { ctx ->
                                         if (verificationTask.isSuccessful) {
                                             Log.d("RegisterFragment", "Verification email sent.")
                                             Toast.makeText(ctx, "Correo de verificación enviado.", Toast.LENGTH_SHORT).show()
@@ -106,20 +93,16 @@ class RegisterFragment : Fragment() {
                                     Log.w("RegisterFragment", "Fragment not added or view destroyed when email verification completed.")
                                 }
                             }
-                        // Navegar a la pantalla de Login
-                        // La navegación también debe estar protegida
-                        if (isAdded) { // Comprobamos isAdded antes de intentar navegar
+                        if (isAdded) {
                             try {
                                 findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
                             } catch (e: IllegalStateException) {
                                 Log.e("RegisterFragment", "Navigation failed after registration: ${e.message}")
-                                // Esto puede pasar si se intenta navegar cuando el NavController no está listo o el fragment ya no está en el backstack correcto.
                             }
                         }
 
                     } else {
                         Log.w("RegisterFragment", "createUserWithEmail:failure", task.exception)
-                        // Mostrar error solo si el fragment está activo y el contexto existe
                         context?.let { ctx ->
                             Toast.makeText(ctx, "Error en el registro: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                         }
@@ -128,8 +111,7 @@ class RegisterFragment : Fragment() {
         }
 
         binding.textViewLoginLink.setOnClickListener {
-            // Comprobar si el fragment está añadido antes de navegar
-            if (isAdded) { // Comprobamos isAdded antes de intentar navegar
+            if (isAdded) {
                 try {
                     findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
                 } catch (e: IllegalStateException) {
@@ -141,6 +123,7 @@ class RegisterFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // Ya NO se muestra la Toolbar aquí
         _binding = null
     }
 }

@@ -3,13 +3,12 @@ package com.example.gymtrackerviews // Tu paquete
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View // Importar View para View.GONE y View.VISIBLE
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
-// Importa navigateUp si no está ya (generalmente se resuelve automáticamente)
-// import androidx.navigation.ui.navigateUp
-import com.example.gymtrackerviews.databinding.ActivityMainBinding // Tu ViewBinding
+import com.example.gymtrackerviews.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,22 +27,35 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
+        // Define los destinos de nivel superior (donde no quieres el botón "atrás" automáticamente)
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.splashFragment,
-                R.id.loginFragment,
-                R.id.workoutListFragment
+                R.id.splashFragment, // Splash no debería tener Toolbar visible de todas formas
+                R.id.loginFragment,  // Login no tendrá Toolbar
+                R.id.registerFragment, // Register no tendrá Toolbar
+                R.id.workoutListFragment // WorkoutList es un destino de nivel superior con Toolbar
             )
-            // No se pasa DrawerLayout aquí si no lo tienes
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
 
+        // <<< AÑADIDO: Listener para cambios de destino >>>
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.loginFragment, R.id.registerFragment, R.id.splashFragment -> {
+                    supportActionBar?.hide()
+                    // Si tu Toolbar está dentro de un AppBarLayout, también puedes ocultar el AppBarLayout
+                    binding.appBarLayout.visibility = View.GONE
+                }
+                else -> {
+                    supportActionBar?.show()
+                    binding.appBarLayout.visibility = View.VISIBLE
+                }
+            }
+        }
         Log.d("MainActivity", "Activity Creada. Toolbar y NavController configurados.")
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        // CAMBIO: Usar la versión más simple de navigateUp()
-        // Esto debería funcionar si no hay un DrawerLayout involucrado.
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }
