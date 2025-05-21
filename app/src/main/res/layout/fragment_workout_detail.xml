@@ -15,11 +15,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        app:layout_constraintEnd_toStartOf="@+id/buttonEditWorkoutName"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall" android:textColor="?attr/colorOnSurface" app:layout_constraintEnd_toStartOf="@+id/buttonEditWorkoutName"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Nombre del Entrenamiento Largo" />
+        tools:text="Nombre del Entrenamiento Largo y Detallado" />
 
     <ImageButton
         android:id="@+id/buttonEditWorkoutName"
@@ -27,7 +26,8 @@
         android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Editar nombre del entrenamiento"
-        app:srcCompat="@drawable/edit_24px" app:tint="?attr/colorPrimary"
+        app:srcCompat="@drawable/edit_24px"
+        app:tint="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/textViewWorkoutNameDetail"
         app:layout_constraintBottom_toBottomOf="@+id/textViewWorkoutNameDetail"
