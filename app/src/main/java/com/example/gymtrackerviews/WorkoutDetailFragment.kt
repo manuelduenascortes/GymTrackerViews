@@ -14,7 +14,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
+// import androidx.navigation.fragment.findNavController // No se usa directamente aquí
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gymtrackerviews.databinding.DialogAddSetBinding
@@ -52,14 +52,12 @@ class WorkoutDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentWorkoutDetailBinding.inflate(inflater, container, false)
-        // <<< MODIFICACIÓN: Usar mutableListOf() en lugar de emptyList() >>>
         exerciseNamesCombinedAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, mutableListOf<String>())
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
         observeViewModel()
         setupClickListeners()
@@ -82,6 +80,19 @@ class WorkoutDetailFragment : Fragment() {
                 } else {
                     context?.let { Toast.makeText(it, "Workout finalizado, no se puede borrar.", Toast.LENGTH_SHORT).show() }
                 }
+            },
+            onSetDuplicateClick = { workoutSetToDuplicate ->
+                Log.d("WorkoutDetailFragment", "Set Duplicate Clicked - Set ID: ${workoutSetToDuplicate.id}")
+                if (viewModel.workout.value?.endTime == null) {
+                    viewModel.insertSet(
+                        workoutSetToDuplicate.exerciseName,
+                        workoutSetToDuplicate.repetitions,
+                        workoutSetToDuplicate.weight
+                    )
+                    context?.let { Toast.makeText(it, "'${workoutSetToDuplicate.exerciseName}' duplicada", Toast.LENGTH_SHORT).show() }
+                } else {
+                    context?.let { Toast.makeText(it, "Workout finalizado, no se puede duplicar.", Toast.LENGTH_SHORT).show() }
+                }
             }
         )
         binding.recyclerViewSets.apply {
@@ -95,7 +106,6 @@ class WorkoutDetailFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.workout.collectLatest { workout ->
-                        // ... (resto del código de observación de workout sin cambios) ...
                         workout?.let {
                             binding.textViewWorkoutNameDetail.text = it.name ?: "Entrenamiento sin nombre"
                             (activity as? AppCompatActivity)?.supportActionBar?.title = it.name ?: "Detalle Workout"
@@ -129,7 +139,6 @@ class WorkoutDetailFragment : Fragment() {
 
                 launch {
                     viewModel.workoutSets.collectLatest { sets: List<WorkoutSet> ->
-                        // ... (resto del código de observación de workoutSets sin cambios) ...
                         val detailListItems = mutableListOf<WorkoutDetailListItem>()
                         val groupedSets = sets.groupBy { it.exerciseName }
                         groupedSets.toSortedMap().forEach { (exerciseName, setsForExercise) ->
@@ -145,7 +154,6 @@ class WorkoutDetailFragment : Fragment() {
 
                 launch {
                     viewModel.timerValue.collect { timeInMillis ->
-                        // ... (resto del código de observación de timerValue sin cambios) ...
                         val minutes = (timeInMillis / 1000) / 60
                         val seconds = (timeInMillis / 1000) % 60
                         binding.textViewTimer.text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
@@ -154,7 +162,6 @@ class WorkoutDetailFragment : Fragment() {
 
                 launch {
                     viewModel.isTimerRunning.collect { isRunning ->
-                        // ... (resto del código de observación de isTimerRunning sin cambios) ...
                         val iconResId = if (isRunning) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
                         binding.buttonTimerToggle.setIconResource(iconResId)
                     }
@@ -176,7 +183,7 @@ class WorkoutDetailFragment : Fragment() {
 
                             val combinedList = combinedNamesSet.toList().sorted()
 
-                            exerciseNamesCombinedAdapter.clear() // Esta línea causaba el error
+                            exerciseNamesCombinedAdapter.clear()
                             exerciseNamesCombinedAdapter.addAll(combinedList)
                             exerciseNamesCombinedAdapter.notifyDataSetChanged()
 
@@ -189,7 +196,6 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // ... (sin cambios en setupClickListeners) ...
         binding.buttonAddSet.setOnClickListener {
             if (binding.buttonAddSet.isEnabled) {
                 showAddOrEditSetDialog(null)
@@ -222,7 +228,6 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun showEditWorkoutNameDialog() {
-        // ... (sin cambios en showEditWorkoutNameDialog) ...
         if (!isAdded || context == null) return
 
         val dialogBinding = DialogEditWorkoutNameBinding.inflate(LayoutInflater.from(requireContext()))
@@ -245,7 +250,6 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun showAddOrEditSetDialog(existingSet: WorkoutSet?) {
-        // ... (sin cambios en showAddOrEditSetDialog, ya usa exerciseNamesCombinedAdapter) ...
         if (!isAdded || context == null) {
             Log.w("WorkoutDetailFragment", "Fragment not added or context is null in showAddOrEditSetDialog")
             return
@@ -313,7 +317,6 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun showDeleteSetConfirmationDialog(setToDelete: WorkoutSet) {
-        // ... (sin cambios en showDeleteSetConfirmationDialog) ...
         if (!isAdded || context == null) return
         AlertDialog.Builder(requireContext())
             .setTitle("Confirmar Borrado")

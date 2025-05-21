@@ -16,7 +16,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:minWidth="60dp"
-        android:textAppearance="?attr/textAppearanceBody1"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -28,24 +29,38 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:minWidth="80dp"
-        android:textAppearance="?attr/textAppearanceBody1"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textViewSetReps"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="\@ 60.5 kg" />
 
     <ImageButton
+        android:id="@+id/buttonDuplicateSetRow"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Duplicar esta serie"
+        android:padding="8dp"
+        app:srcCompat="@drawable/add_24px" app:tint="?attr/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/buttonDeleteSetRow"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <ImageButton
         android:id="@+id/buttonDeleteSetRow"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Borrar esta serie"
-        android:minWidth="48dp"
-        android:minHeight="48dp"
         android:padding="8dp"
+        app:srcCompat="@android:drawable/ic_menu_delete"
+        app:tint="?attr/colorOnSurfaceVariant"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_delete" />
+        tools:ignore="TouchTargetSizeCheck" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
