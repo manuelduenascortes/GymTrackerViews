@@ -5,22 +5,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    tools:context=".ui.auth.RegisterFragment"> {/* Asumimos que el fragment estará en un paquete ui.auth */}
+    android:background="?android:attr/colorBackground"
+    tools:context=".ui.auth.RegisterFragment">
 
     <TextView
         android:id="@+id/textViewRegisterTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Crear Cuenta"
-        android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+        android:textAppearance="?attr/textAppearanceHeadlineMedium"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp"/>
+        android:layout_marginTop="64dp"/>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textFieldEmailRegister"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="?attr/textInputStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Correo Electrónico"
@@ -38,7 +39,7 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textFieldPasswordRegister"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="?attr/textInputStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Contraseña"
@@ -57,7 +58,7 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textFieldConfirmPasswordRegister"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="?attr/textInputStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Confirmar Contraseña"
@@ -76,24 +77,40 @@
 
     <Button
         android:id="@+id/buttonRegister"
+        style="?attr/materialButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Registrarse"
         app:layout_constraintTop_toBottomOf="@id/textFieldConfirmPasswordRegister"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"
-        style="@style/Widget.Material3.Button"/>
+        android:layout_marginTop="24dp"/>
 
     <TextView
         android:id="@+id/textViewLoginLink"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="¿Ya tienes una cuenta? Inicia Sesión"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorPrimary"
         app:layout_constraintTop_toBottomOf="@id/buttonRegister"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="24dp"
         android:padding="8dp"/>
+
+    <ImageView
+        android:id="@+id/app_icon_register"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:src="@mipmap/ic_launcher_round"
+        android:contentDescription="Icono de la aplicación"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewLoginLink"
+        app:layout_constraintVertical_bias="0.7"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="32dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -29,7 +29,11 @@
         tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_loginFragment_to_registerFragment"
-            app:destination="@id/registerFragment" />
+            app:destination="@id/registerFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"  />
         <action
             android:id="@+id/action_loginFragment_to_workoutListFragment"
             app:destination="@id/workoutListFragment"
@@ -46,7 +50,11 @@
             android:id="@+id/action_registerFragment_to_loginFragment"
             app:destination="@id/loginFragment"
             app:popUpTo="@id/loginFragment"
-            app:popUpToInclusive="true" />
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left"  />
         <action
             android:id="@+id/action_registerFragment_to_workoutListFragment"
             app:destination="@id/workoutListFragment"
@@ -61,21 +69,36 @@
         tools:layout="@layout/fragment_workout_list" >
         <action
             android:id="@+id/action_workoutListFragment_to_newWorkoutFragment"
-            app:destination="@id/newWorkoutFragment" />
+            app:destination="@id/newWorkoutFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_workoutListFragment_to_workoutDetailFragment"
-            app:destination="@id/workoutDetailFragment" />
+            app:destination="@id/workoutDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_workoutListFragment_to_splashFragment"
             app:destination="@id/splashFragment"
             app:popUpTo="@id/nav_graph"
-            app:popUpToInclusive="true" />
-        <action
-            android:id="@+id/action_workoutListFragment_to_statisticsFragment"
-            app:destination="@id/statisticsFragment" />
+            app:popUpToInclusive="true" /> <action
+        android:id="@+id/action_workoutListFragment_to_statisticsFragment"
+        app:destination="@id/statisticsFragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_workoutListFragment_to_exerciseLibraryFragment"
-            app:destination="@id/exerciseLibraryFragment" />
+            app:destination="@id/exerciseLibraryFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -86,7 +109,11 @@
         <action
             android:id="@+id/action_newWorkoutFragment_to_workoutDetailFragment"
             app:destination="@id/workoutDetailFragment"
-            app:popUpTo="@id/workoutListFragment" />
+            app:popUpTo="@id/workoutListFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
