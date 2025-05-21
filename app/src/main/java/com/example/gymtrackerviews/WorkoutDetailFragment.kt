@@ -107,8 +107,17 @@ class WorkoutDetailFragment : Fragment() {
                 launch {
                     viewModel.workout.collectLatest { workout ->
                         workout?.let {
+                            // Actualizar el nombre del workout en el TextView del layout
                             binding.textViewWorkoutNameDetail.text = it.name ?: "Entrenamiento sin nombre"
-                            (activity as? AppCompatActivity)?.supportActionBar?.title = it.name ?: "Detalle Workout"
+
+                            // <<< NUEVO: Lógica para cambiar el título de la Toolbar >>>
+                            val toolbarTitle = if (it.endTime == null) {
+                                "Entrenamiento en curso"
+                            } else {
+                                "Entrenamiento finalizado"
+                            }
+                            (activity as? AppCompatActivity)?.supportActionBar?.title = toolbarTitle
+                            // <<< FIN NUEVO >>>
 
                             val isFinished = it.endTime != null
                             binding.textViewDetailEndTime.visibility = if (isFinished) View.VISIBLE else View.GONE
@@ -137,6 +146,7 @@ class WorkoutDetailFragment : Fragment() {
                     }
                 }
 
+                // ... (resto de los bloques launch para workoutSets, timerValue, isTimerRunning, exerciseNames sin cambios) ...
                 launch {
                     viewModel.workoutSets.collectLatest { sets: List<WorkoutSet> ->
                         val detailListItems = mutableListOf<WorkoutDetailListItem>()
@@ -196,6 +206,7 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+        // ... (sin cambios en setupClickListeners) ...
         binding.buttonAddSet.setOnClickListener {
             if (binding.buttonAddSet.isEnabled) {
                 showAddOrEditSetDialog(null)
@@ -228,6 +239,7 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun showEditWorkoutNameDialog() {
+        // ... (sin cambios en showEditWorkoutNameDialog) ...
         if (!isAdded || context == null) return
 
         val dialogBinding = DialogEditWorkoutNameBinding.inflate(LayoutInflater.from(requireContext()))
@@ -250,6 +262,7 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun showAddOrEditSetDialog(existingSet: WorkoutSet?) {
+        // ... (sin cambios en showAddOrEditSetDialog) ...
         if (!isAdded || context == null) {
             Log.w("WorkoutDetailFragment", "Fragment not added or context is null in showAddOrEditSetDialog")
             return
@@ -317,6 +330,7 @@ class WorkoutDetailFragment : Fragment() {
     }
 
     private fun showDeleteSetConfirmationDialog(setToDelete: WorkoutSet) {
+        // ... (sin cambios en showDeleteSetConfirmationDialog) ...
         if (!isAdded || context == null) return
         AlertDialog.Builder(requireContext())
             .setTitle("Confirmar Borrado")
