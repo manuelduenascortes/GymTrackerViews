@@ -2,7 +2,8 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="?attr/materialCardViewStyle" android:layout_width="match_parent"
+    style="?attr/materialCardViewStyle"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="8dp"
     android:layout_marginTop="4dp"
@@ -11,6 +12,7 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?android:attr/selectableItemBackground">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -34,7 +36,9 @@
                 android:id="@+id/textViewWorkoutStartTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceTitleMedium" android:textColor="?attr/colorOnSurface" tools:text="Inicio: 26 Abr 25, 21:22:59" />
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="Inicio: 26 Abr 25, 21:22:59" />
 
             <TextView
                 android:id="@+id/textViewWorkoutStatusDuration"
@@ -42,7 +46,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant" tools:text="Duración: 1h 15m" />
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="Duración: 1h 15m" />
 
             <TextView
                 android:id="@+id/textViewSetCount"
@@ -50,7 +55,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant" tools:text="Series: 15" />
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="Series: 15" />
 
             <TextView
                 android:id="@+id/textViewWorkoutNotesPreview"
@@ -58,7 +64,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="?attr/colorOnSurfaceVariant" android:maxLines="2"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:maxLines="2"
                 android:ellipsize="end"
                 android:visibility="gone"
                 tools:text="Notas: Buenas sensaciones hoy..."
@@ -70,7 +77,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textAppearance="?attr/textAppearanceCaption"
-                android:textColor="?attr/colorOnSurfaceVariant" android:visibility="gone"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone"
                 tools:text="Workout ID: 10"
                 tools:visibility="visible"/>
         </LinearLayout>
@@ -84,10 +92,9 @@
             android:minWidth="48dp"
             android:minHeight="48dp"
             android:padding="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:srcCompat="@drawable/delete_24px" app:tint="?attr/colorError" app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/ic_menu_delete"
-            app:tint="?attr/colorOnSurfaceVariant" /> </androidx.constraintlayout.widget.ConstraintLayout>
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>

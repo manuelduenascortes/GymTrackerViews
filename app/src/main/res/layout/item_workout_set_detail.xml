@@ -56,9 +56,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Borrar esta serie"
         android:padding="8dp"
-        app:srcCompat="@android:drawable/ic_menu_delete"
-        app:tint="?attr/colorOnSurfaceVariant"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:srcCompat="@drawable/delete_24px" app:tint="?attr/colorError" app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="TouchTargetSizeCheck" />
