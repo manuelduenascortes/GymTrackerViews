@@ -9,6 +9,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.gymtrackerviews.databinding.ActivityMainBinding
+import com.example.gymtrackerviews.R // Asegúrate de que R está importado
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,29 +28,28 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        // Define los destinos de nivel superior (donde no quieres el botón "atrás" automáticamente)
+        // Define los destinos de nivel superior Y los que no deben tener Toolbar
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.splashFragment, // Splash no debería tener Toolbar visible de todas formas
-                R.id.loginFragment,  // Login no tendrá Toolbar
-                R.id.registerFragment, // Register no tendrá Toolbar
-                R.id.workoutListFragment // WorkoutList es un destino de nivel superior con Toolbar
+                R.id.splashFragment,
+                R.id.loginFragment,
+                R.id.registerFragment,
+                R.id.workoutListFragment // WorkoutList es un destino de nivel superior CON Toolbar
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-        // <<< AÑADIDO: Listener para cambios de destino >>>
+        // Listener para cambios de destino para controlar la visibilidad de la Toolbar
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.loginFragment, R.id.registerFragment, R.id.splashFragment -> {
-                    supportActionBar?.hide()
-                    // Si tu Toolbar está dentro de un AppBarLayout, también puedes ocultar el AppBarLayout
-                    binding.appBarLayout.visibility = View.GONE
-                }
-                else -> {
-                    supportActionBar?.show()
-                    binding.appBarLayout.visibility = View.VISIBLE
-                }
+            Log.d("MainActivity", "Navigating to destination: ${destination.label}, ID: ${destination.id}")
+            if (destination.id == R.id.loginFragment ||
+                destination.id == R.id.registerFragment ||
+                destination.id == R.id.splashFragment) {
+                Log.d("MainActivity", "Hiding AppBarLayout for ${destination.label}")
+                binding.appBarLayout.visibility = View.GONE
+            } else {
+                Log.d("MainActivity", "Showing AppBarLayout for ${destination.label}")
+                binding.appBarLayout.visibility = View.VISIBLE
             }
         }
         Log.d("MainActivity", "Activity Creada. Toolbar y NavController configurados.")
