@@ -1,13 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primaryDark">#FF2979FF</color> <color name="primaryVariantDark">#FF004ECB</color> <color name="onPrimaryDark">#FFFFFFFF</color> <color name="secondaryDark">#FF2979FF</color> <color name="secondaryVariantDark">#FF004ECB</color> <color name="onSecondaryDark">#FFFFFFFF</color> <color name="backgroundDark">#FF1A1A1A</color>
-    <color name="surfaceDark">#FF2C2C2C</color> <color name="onBackgroundDark">#FFFFFFFF</color>
-    <color name="onSurfaceDark">#FFFFFFFF</color>
-    <color name="onSurfaceVariantDark">#FFBDBDBD</color>
+    <color name="md_theme_primary">#529DFF</color>
+    <color name="md_theme_onPrimary">#003062</color>
+    <color name="md_theme_primaryContainer">#004789</color>
+    <color name="md_theme_onPrimaryContainer">#D7E2FF</color>
 
-    <color name="errorDark">#FFCF6679</color>
-    <color name="onErrorDark">#FF000000</color>
+    <color name="md_theme_secondary">#FFB74D</color>
+    <color name="md_theme_onSecondary">#4A2B00</color>
+    <color name="md_theme_secondaryContainer">#693F00</color>
+    <color name="md_theme_onSecondaryContainer">#FFDDB2</color>
+
+    <color name="md_theme_error">#FFB4AB</color>
+    <color name="md_theme_onError">#690005</color>
+    <color name="md_theme_errorContainer">#93000A</color>
+    <color name="md_theme_onErrorContainer">#FFDAD6</color>
+
+    <color name="md_theme_background">#1A1B1E</color>
+    <color name="md_theme_onBackground">#E3E2E6</color>
+    <color name="md_theme_surface">#2C2C2E</color> <color name="md_theme_onSurface">#E3E2E6</color>
+    <color name="md_theme_surfaceVariant">#44474E</color> <color name="md_theme_onSurfaceVariant">#C5C6D0</color> <color name="md_theme_outline">#8E9099</color>
+    <color name="md_theme_outlineVariant">#44474E</color>
+
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Colores de tu tema original (puedes mantenerlos si los usas directamente en algún sitio,
+         o migrarlos a los nuevos nombres md_theme_*) -->
+    <color name="primaryDark_old">#FF2979FF</color>
+    <color name="primaryVariantDark_old">#FF004ECB</color>
+    <color name="onPrimaryDark_old">#FFFFFFFF</color>
+    <color name="secondaryDark_old">#FF2979FF</color>
+    <color name="secondaryVariantDark_old">#FF004ECB</color>
+    <color name="onSecondaryDark_old">#FFFFFFFF</color>
+    <color name="backgroundDark_old">#FF1A1A1A</color>
+    <color name="surfaceDark_old">#FF2C2C2C</color>
+    <color name="onBackgroundDark_old">#FFFFFFFF</color>
+    <color name="onSurfaceDark_old">#FFFFFFFF</color>
+    <color name="onSurfaceVariantDark_old">#FFBDBDBD</color>
+    <color name="errorDark_old">#FFCF6679</color>
+    <color name="onErrorDark_old">#FF000000</color>
 </resources>

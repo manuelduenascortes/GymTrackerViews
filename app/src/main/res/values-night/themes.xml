@@ -1,11 +1,65 @@
+<!-- Para este rediseño inicial, el tema nocturno será idéntico al tema principal,
+     ya que hemos diseñado la paleta directamente para modo oscuro.
+     Si más adelante quieres un modo claro, crearías aquí las diferencias
+     o harías que el `values/themes.xml` fuera el claro y este el oscuro. -->
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Base.Theme.GymTrackerViews" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="colorPrimary">@color/primaryDark</item>
-        <item name="colorPrimaryVariant">@color/primaryVariantDark</item>
-        <item name="colorOnPrimary">@color/onPrimaryDark</item> <item name="colorSecondary">@color/secondaryDark</item>
-        <item name="colorSecondaryVariant">@color/secondaryVariantDark</item>
-        <item name="colorOnSecondary">@color/onSecondaryDark</item> <item name="android:colorBackground">@color/backgroundDark</item> <item name="colorSurface">@color/surfaceDark</item> <item name="colorOnBackground">@color/onBackgroundDark</item> <item name="colorOnSurface">@color/onSurfaceDark</item> <item name="colorError">@color/errorDark</item>
-        <item name="colorOnError">@color/onErrorDark</item> <item name="colorOutline">@color/white</item> </style>
+        <item name="colorPrimary">@color/md_theme_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_onPrimaryContainer</item>
+
+        <item name="colorSecondary">@color/md_theme_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_onSecondaryContainer</item>
+
+        <item name="colorError">@color/md_theme_error</item>
+        <item name="colorOnError">@color/md_theme_onError</item>
+        <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
+
+        <item name="android:colorBackground">@color/md_theme_background</item>
+        <item name="colorOnBackground">@color/md_theme_onBackground</item>
+
+        <item name="colorSurface">@color/md_theme_surface</item>
+        <item name="colorOnSurface">@color/md_theme_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md_theme_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md_theme_onSurfaceVariant</item>
+
+        <item name="colorOutline">@color/md_theme_outline</item>
+        <item name="colorOutlineVariant">@color/md_theme_outlineVariant</item>
+
+        <item name="android:fontFamily">@font/inter_regular</item>
+        <item name="fontFamily">@font/inter_regular</item>
+
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.App.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.App.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.App.HeadlineSmall</item>
+
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.App.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.App.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.App.TitleSmall</item>
+
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.App.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.App.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.App.BodySmall</item>
+
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.App.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.App.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.App.LabelSmall</item>
+
+        <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
+
+        <item name="materialCardViewStyle">@style/Widget.App.MaterialCardView</item>
+
+        <item name="materialButtonStyle">@style/Widget.App.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.App.Button.Outlined</item>
+        <item name="textInputStyle">@style/Widget.App.TextInputLayout.OutlinedBox</item>
+    </style>
+
+    <!-- Los estilos de texto y componentes ya están definidos en values/themes.xml,
+         por lo que no es necesario repetirlos aquí si son iguales para el modo noche. -->
 
     <style name="Theme.GymTrackerViews" parent="Base.Theme.GymTrackerViews" />
 </resources>
