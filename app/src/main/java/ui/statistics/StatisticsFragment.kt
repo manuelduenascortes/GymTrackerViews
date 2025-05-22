@@ -6,13 +6,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.gymtrackerviews.GymTrackerApplication
-import com.example.gymtrackerviews.R // Necesario para R.string
+import com.example.gymtrackerviews.R
 import com.example.gymtrackerviews.databinding.FragmentStatisticsBinding
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
@@ -24,13 +25,9 @@ import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-
-// Asegúrate de que StatisticsViewModel y StatisticsViewModelFactory están importados correctamente
-// import com.example.gymtrackerviews.viewmodel.StatisticsViewModel
-// import com.example.gymtrackerviews.viewmodel.StatisticsViewModelFactory
-// import com.example.gymtrackerviews.ChartEntryData // Si está en otro archivo
 
 class StatisticsFragment : Fragment() {
 
@@ -39,8 +36,14 @@ class StatisticsFragment : Fragment() {
 
     private val viewModel: StatisticsViewModel by viewModels {
         val application = requireActivity().application as GymTrackerApplication
-        StatisticsViewModelFactory(application.database.workoutDao(), application.database.workoutSetDao())
+        StatisticsViewModelFactory(
+            application.database.workoutDao(),
+            application.database.workoutSetDao(),
+            application.database.exerciseDao() // <<< AÑADIDO exerciseDao
+        )
     }
+
+    private lateinit var exerciseFilterAdapter: ArrayAdapter<String>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,23 +56,23 @@ class StatisticsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d("StatisticsFragment", "onViewCreated called")
+
         setupCharts()
+        setupExerciseFilter()
         observeViewModelData()
     }
 
     private fun setupCharts() {
-        // CAMBIO: Se elimina el tercer argumento 'label' de las llamadas a setupLineChart
         setupLineChart(
-            binding.lineChartSeriesProgress,
-            "Series por Workout" // Este es el descriptionText
+            binding.lineChartWorkoutsPerWeek,
+            "Entrenamientos por Semana"
         )
         setupLineChart(
-            binding.lineChartVolumeProgress,
-            "Volumen Total (kg) por Workout" // Este es el descriptionText
+            binding.lineChartExerciseProgress,
+            "Progreso por Ejercicio" // El label del dataset se pondrá dinámicamente
         )
     }
 
-    // CAMBIO: Se elimina el parámetro 'label: String' de la firma del método
     private fun setupLineChart(chart: LineChart, descriptionText: String) {
         chart.apply {
             description.isEnabled = true
@@ -83,60 +86,92 @@ class StatisticsFragment : Fragment() {
             isDragEnabled = true
             setScaleEnabled(true)
             setPinchZoom(true)
-            legend.isEnabled = true // La leyenda mostrará el label del LineDataSet (que se pone en updateChartWithData)
+            legend.isEnabled = true
 
             xAxis.position = XAxis.XAxisPosition.BOTTOM
             xAxis.setDrawGridLines(false)
             xAxis.granularity = 1f
-            xAxis.valueFormatter = DateAxisValueFormatter()
+            // ValueFormatter se establecerá dinámicamente
 
             context?.let { ctx ->
                 val textColor = MaterialColors.getColor(ctx, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
                 xAxis.textColor = textColor
                 axisLeft.textColor = textColor
+                legend.textColor = textColor
             }
 
             axisLeft.setDrawGridLines(true)
-            axisLeft.axisMinimum = 0f
+            axisLeft.axisMinimum = 0f // Importante para que el gráfico empiece en 0
             axisRight.isEnabled = false
         }
     }
 
+    private fun setupExerciseFilter() {
+        exerciseFilterAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, mutableListOf<String>())
+        binding.autoCompleteTextViewExerciseFilter.setAdapter(exerciseFilterAdapter)
+        binding.autoCompleteTextViewExerciseFilter.setOnItemClickListener { parent, _, position, _ ->
+            val selectedExercise = parent.getItemAtPosition(position) as String
+            viewModel.setSelectedExercise(selectedExercise)
+        }
+    }
 
     private fun observeViewModelData() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Observar entrenamientos por semana
                 launch {
-                    viewModel.seriesPerWorkout.collectLatest { seriesData ->
-                        Log.d("StatisticsFragment", "Received ${seriesData.size} series data points")
-                        if (seriesData.size < 2) {
-                            binding.lineChartSeriesProgress.visibility = View.GONE
-                            binding.textViewNoDataSeries.visibility = View.VISIBLE
+                    viewModel.workoutsPerWeek.collectLatest { weeklyData ->
+                        Log.d("StatisticsFragment", "Received ${weeklyData.size} weekly data points")
+                        if (weeklyData.size < 2 && weeklyData.none { it.value > 0}) { // Mostrar si hay al menos un dato o más de uno
+                            binding.lineChartWorkoutsPerWeek.visibility = View.GONE
+                            binding.textViewNoDataWorkoutsPerWeek.visibility = View.VISIBLE
                         } else {
-                            binding.lineChartSeriesProgress.visibility = View.VISIBLE
-                            binding.textViewNoDataSeries.visibility = View.GONE
+                            binding.lineChartWorkoutsPerWeek.visibility = View.VISIBLE
+                            binding.textViewNoDataWorkoutsPerWeek.visibility = View.GONE
+                            binding.lineChartWorkoutsPerWeek.xAxis.valueFormatter = WeekAxisValueFormatter()
                             updateChartWithData(
-                                binding.lineChartSeriesProgress,
-                                seriesData,
-                                getString(R.string.chart_series_label) // La etiqueta para el DataSet se pasa aquí
+                                binding.lineChartWorkoutsPerWeek,
+                                weeklyData,
+                                "Nº Entrenamientos",
+                                isWeeklyData = true
                             )
                         }
                     }
                 }
 
+                // Observar lista de nombres de ejercicios para el desplegable
                 launch {
-                    viewModel.volumePerWorkout.collectLatest { volumeData ->
-                        Log.d("StatisticsFragment", "Received ${volumeData.size} volume data points")
-                        if (volumeData.size < 2) {
-                            binding.lineChartVolumeProgress.visibility = View.GONE
-                            binding.textViewNoDataVolume.visibility = View.VISIBLE
+                    viewModel.allExerciseNames.collectLatest { names ->
+                        Log.d("StatisticsFragment", "Received ${names.size} exercise names for filter")
+                        exerciseFilterAdapter.clear()
+                        exerciseFilterAdapter.addAll(names)
+                        exerciseFilterAdapter.notifyDataSetChanged()
+                    }
+                }
+
+                // Observar progreso del ejercicio seleccionado
+                launch {
+                    viewModel.selectedExerciseProgress.collectLatest { exerciseProgressData ->
+                        val selectedExercise = binding.autoCompleteTextViewExerciseFilter.text.toString()
+                        Log.d("StatisticsFragment", "Received ${exerciseProgressData.size} progress data points for $selectedExercise")
+
+                        if (selectedExercise.isBlank()){
+                            binding.lineChartExerciseProgress.visibility = View.GONE
+                            binding.textViewNoDataExerciseProgress.text = "Selecciona un ejercicio para ver el progreso."
+                            binding.textViewNoDataExerciseProgress.visibility = View.VISIBLE
+                        } else if (exerciseProgressData.size < 2 && exerciseProgressData.none { it.value > 0}) {
+                            binding.lineChartExerciseProgress.visibility = View.GONE
+                            binding.textViewNoDataExerciseProgress.text = "No hay suficientes datos para '$selectedExercise'."
+                            binding.textViewNoDataExerciseProgress.visibility = View.VISIBLE
                         } else {
-                            binding.lineChartVolumeProgress.visibility = View.VISIBLE
-                            binding.textViewNoDataVolume.visibility = View.GONE
+                            binding.lineChartExerciseProgress.visibility = View.VISIBLE
+                            binding.textViewNoDataExerciseProgress.visibility = View.GONE
+                            binding.lineChartExerciseProgress.xAxis.valueFormatter = DateAxisValueFormatter() // Usar el formateador de fecha normal
                             updateChartWithData(
-                                binding.lineChartVolumeProgress,
-                                volumeData,
-                                getString(R.string.chart_volume_label) // La etiqueta para el DataSet se pasa aquí
+                                binding.lineChartExerciseProgress,
+                                exerciseProgressData,
+                                "Max Peso (kg) - $selectedExercise",
+                                isWeeklyData = false
                             )
                         }
                     }
@@ -145,10 +180,9 @@ class StatisticsFragment : Fragment() {
         }
     }
 
-    // El parámetro 'label' aquí SÍ se usa para el LineDataSet
-    private fun updateChartWithData(chart: LineChart, dataPoints: List<ChartEntryData>, label: String) {
+    private fun updateChartWithData(chart: LineChart, dataPoints: List<ChartEntryData>, label: String, isWeeklyData: Boolean) {
         val entries = ArrayList<Entry>()
-        val dates = ArrayList<Date>()
+        val dates = ArrayList<Date>() // Para el DateAxisValueFormatter
 
         dataPoints.forEachIndexed { index, dataPoint ->
             entries.add(Entry(index.toFloat(), dataPoint.value))
@@ -158,16 +192,20 @@ class StatisticsFragment : Fragment() {
         if (entries.isEmpty()) {
             chart.clear()
             chart.invalidate()
+            Log.d("StatisticsFragment", "Chart '$label' cleared (no entries).")
             return
         }
 
-        val lineDataSet = LineDataSet(entries, label) // 'label' se usa aquí
+        val lineDataSet = LineDataSet(entries, label)
         context?.let { ctx ->
             val primaryColor = MaterialColors.getColor(ctx, com.google.android.material.R.attr.colorPrimary, Color.BLUE)
             val onSurfaceColor = MaterialColors.getColor(ctx, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
             lineDataSet.color = primaryColor
             lineDataSet.valueTextColor = onSurfaceColor
             lineDataSet.setCircleColor(primaryColor)
+            lineDataSet.fillColor = primaryColor // Para el área debajo de la línea
+            lineDataSet.setDrawFilled(true) // Habilitar el relleno
+            lineDataSet.fillAlpha = 65 // Transparencia del relleno (0-255)
         }
         lineDataSet.lineWidth = 2f
         lineDataSet.circleRadius = 4f
@@ -175,18 +213,25 @@ class StatisticsFragment : Fragment() {
         lineDataSet.valueTextSize = 10f
         lineDataSet.valueFormatter = object : ValueFormatter() {
             override fun getPointLabel(entry: Entry?): String {
-                return if (label == getString(R.string.chart_volume_label)) {
-                    String.format(Locale.getDefault(), "%.1f", entry?.y)
-                } else {
+                return if (isWeeklyData) { // Para el gráfico semanal, mostrar como entero
                     entry?.y?.toInt().toString()
+                } else { // Para el gráfico de peso, mostrar con un decimal
+                    String.format(Locale.getDefault(), "%.1f", entry?.y)
                 }
             }
         }
 
         val lineData = LineData(lineDataSet)
         chart.data = lineData
-        (chart.xAxis.valueFormatter as? DateAxisValueFormatter)?.setDates(dates)
+
+        if (chart.xAxis.valueFormatter is DateAxisValueFormatter) {
+            (chart.xAxis.valueFormatter as DateAxisValueFormatter).setDates(dates)
+        } else if (chart.xAxis.valueFormatter is WeekAxisValueFormatter) {
+            (chart.xAxis.valueFormatter as WeekAxisValueFormatter).setDates(dates)
+        }
+
         chart.invalidate()
+        chart.animateX(500) // Animación sutil al cargar datos
         Log.d("StatisticsFragment", "Chart '$label' updated with ${entries.size} entries.")
     }
 
@@ -196,6 +241,7 @@ class StatisticsFragment : Fragment() {
     }
 }
 
+// Formateador para el eje X de fechas (ya lo tenías)
 class DateAxisValueFormatter : ValueFormatter() {
     private val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
     private var dates: List<Date> = emptyList()
@@ -208,6 +254,29 @@ class DateAxisValueFormatter : ValueFormatter() {
         val index = value.toInt()
         return if (index >= 0 && index < dates.size) {
             dateFormat.format(dates[index])
+        } else {
+            ""
+        }
+    }
+}
+
+// Nuevo formateador para el eje X de semanas
+class WeekAxisValueFormatter : ValueFormatter() {
+    private val calendar = Calendar.getInstance()
+    private var dates: List<Date> = emptyList() // Usaremos la fecha representativa de la semana
+
+    fun setDates(dates: List<Date>) {
+        this.dates = dates
+    }
+
+    override fun getAxisLabel(value: Float, axis: com.github.mikephil.charting.components.AxisBase?): String {
+        val index = value.toInt()
+        return if (index >= 0 && index < dates.size) {
+            calendar.time = dates[index]
+            val week = calendar.get(Calendar.WEEK_OF_YEAR)
+            // val year = calendar.get(Calendar.YEAR) % 100 // Año corto
+            // "S${week}/${year}"
+            "Sem ${week}" // Más corto
         } else {
             ""
         }

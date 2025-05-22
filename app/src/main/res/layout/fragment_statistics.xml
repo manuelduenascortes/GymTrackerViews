@@ -8,7 +8,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:padding="16dp"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
         tools:context=".ui.statistics.StatisticsFragment">
 
         <TextView
@@ -16,18 +17,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Estadísticas de Entrenamiento"
-            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="8dp"/>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardSeriesProgress"
+            android:id="@+id/cardWorkoutsPerWeek"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            app:cardElevation="4dp"
+            app:cardElevation="0dp"
+            android:background="@drawable/bg_translucent_surface_rounded"
             app:layout_constraintTop_toBottomOf="@id/textViewStatisticsTitle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -37,28 +39,30 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:minHeight="350dp"> {/* Altura mínima para asegurar espacio */}
+                android:minHeight="300dp">
 
                 <TextView
-                    android:id="@+id/textViewSeriesChartTitle"
+                    android:id="@+id/textViewWorkoutsPerWeekChartTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Progreso de Series por Workout"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                    android:text="Entrenamientos por Semana"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp"/>
 
                 <com.github.mikephil.charting.charts.LineChart
-                    android:id="@+id/lineChartSeriesProgress"
+                    android:id="@+id/lineChartWorkoutsPerWeek"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"/> {/* Para que ocupe el espacio restante */}
+                    android:layout_weight="1"/>
 
                 <TextView
-                    android:id="@+id/textViewNoDataSeries"
+                    android:id="@+id/textViewNoDataWorkoutsPerWeek"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="No hay suficientes datos para el gráfico de series."
+                    android:text="No hay suficientes datos para el gráfico de entrenamientos semanales."
                     android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:visibility="gone"
                     tools:visibility="visible"/>
@@ -66,13 +70,14 @@
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardVolumeProgress"
+            android:id="@+id/cardExerciseProgress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="16dp"
-            app:cardElevation="4dp"
-            app:layout_constraintTop_toBottomOf="@id/cardSeriesProgress"
+            app:cardElevation="0dp"
+            android:background="@drawable/bg_translucent_surface_rounded"
+            app:layout_constraintTop_toBottomOf="@id/cardWorkoutsPerWeek"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -83,28 +88,47 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:minHeight="350dp"> {/* Altura mínima para asegurar espacio */}
+                android:minHeight="350dp">
 
                 <TextView
-                    android:id="@+id/textViewVolumeChartTitle"
+                    android:id="@+id/textViewExerciseProgressChartTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Progreso de Volumen Total (kg) por Workout"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                    android:text="Progreso por Ejercicio"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorOnSurface"
                     android:layout_marginBottom="8dp"/>
 
-                <com.github.mikephil.charting.charts.LineChart
-                    android:id="@+id/lineChartVolumeProgress"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"/> {/* Para que ocupe el espacio restante */}
-
-                <TextView
-                    android:id="@+id/textViewNoDataVolume"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/textFieldExerciseFilter"
+                    style="?attr/textInputStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="No hay suficientes datos para el gráfico de volumen."
+                    android:layout_marginBottom="8dp"
+                    android:hint="Seleccionar Ejercicio"
+                    app:endIconMode="dropdown_menu">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/autoCompleteTextViewExerciseFilter"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:textColor="?attr/colorOnSurface" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/lineChartExerciseProgress"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
+
+                <TextView
+                    android:id="@+id/textViewNoDataExerciseProgress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Selecciona un ejercicio para ver el progreso o no hay datos."
                     android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:visibility="gone"
                     tools:visibility="visible"/>
