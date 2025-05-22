@@ -18,9 +18,7 @@ class WorkoutAdapter(
 
     inner class WorkoutViewHolder(private val binding: ItemWorkoutBinding) : RecyclerView.ViewHolder(binding.root) {
         private var currentWorkoutSummary: WorkoutSummary? = null
-        private val dateFormatShort = SimpleDateFormat("dd MMM yy, HH:mm", Locale.getDefault())
-        private val dateFormatJustDate = SimpleDateFormat("dd MMM yy", Locale.getDefault())
-
+        private val dateFormatDateTitle = SimpleDateFormat("dd MMM yy", Locale.getDefault()) // Formato para el título de fecha
 
         init {
             binding.root.setOnClickListener {
@@ -35,17 +33,23 @@ class WorkoutAdapter(
             currentWorkoutSummary = workoutSummary
             val workout = workoutSummary.workout
 
-            // 1. Nombre del Entrenamiento o Fecha
-            if (!workout.name.isNullOrBlank()) {
-                binding.textViewWorkoutName.text = workout.name
-                binding.textViewWorkoutStartTime.text = "Realizado el: ${dateFormatShort.format(workout.startTime)}"
-                binding.textViewWorkoutStartTime.visibility = View.VISIBLE
+            // 1. Título Principal: Siempre la Fecha
+            binding.textViewWorkoutDateTitle.text = "Entrenamiento del ${dateFormatDateTitle.format(workout.startTime)}"
+
+            // 2. Nombre Personalizado del Entrenamiento
+            // Un nombre es "personalizado" si existe Y no es igual a los grupos musculares (ya que los grupos musculares se usan como nombre autogenerado)
+            val isCustomNameProvided = !workout.name.isNullOrBlank()
+            val isNameDifferentFromMuscleGroups = workout.name != workout.mainMuscleGroup
+
+            if (isCustomNameProvided && (workout.mainMuscleGroup.isNullOrBlank() || isNameDifferentFromMuscleGroups)) {
+                binding.textViewWorkoutCustomName.text = workout.name
+                binding.textViewWorkoutCustomName.visibility = View.VISIBLE
             } else {
-                binding.textViewWorkoutName.text = "Entrenamiento del ${dateFormatJustDate.format(workout.startTime)}"
-                binding.textViewWorkoutStartTime.visibility = View.GONE // Ocultar si la fecha ya está en el título
+                binding.textViewWorkoutCustomName.visibility = View.GONE
             }
 
-            // 2. Grupos Musculares
+            // 3. Grupos Musculares
+            // Mostrar solo si hay grupos musculares
             if (!workout.mainMuscleGroup.isNullOrBlank()) {
                 binding.textViewWorkoutMuscleGroups.text = workout.mainMuscleGroup
                 binding.textViewWorkoutMuscleGroups.visibility = View.VISIBLE
@@ -53,7 +57,23 @@ class WorkoutAdapter(
                 binding.textViewWorkoutMuscleGroups.visibility = View.GONE
             }
 
-            // 3. Estado/Duración y Series
+            // Ajustar la constraint superior de layoutWorkoutMetaInfo dinámicamente
+            // Esto asegura que layoutWorkoutMetaInfo se coloque debajo del último elemento visible
+            // entre el título de fecha, nombre personalizado y grupos musculares.
+            val metaInfoTopAnchorId: Int
+            if (binding.textViewWorkoutMuscleGroups.visibility == View.VISIBLE) {
+                metaInfoTopAnchorId = binding.textViewWorkoutMuscleGroups.id
+            } else if (binding.textViewWorkoutCustomName.visibility == View.VISIBLE) {
+                metaInfoTopAnchorId = binding.textViewWorkoutCustomName.id
+            } else {
+                metaInfoTopAnchorId = binding.textViewWorkoutDateTitle.id
+            }
+            (binding.layoutWorkoutMetaInfo.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams).apply {
+                topToBottom = metaInfoTopAnchorId
+            }
+
+
+            // 4. Estado/Duración y Series
             if (workout.endTime != null) {
                 val durationMillis = workout.endTime.time - workout.startTime.time
                 val hours = TimeUnit.MILLISECONDS.toHours(durationMillis)
@@ -67,7 +87,7 @@ class WorkoutAdapter(
                     if (seconds > 0) {
                         durationString += "${seconds}s"
                     } else {
-                        durationString = "< 1s" // Si es muy corto
+                        durationString = "< 1s"
                     }
                 }
                 binding.textViewWorkoutStatusDuration.text = "Duración: $durationString"
@@ -77,7 +97,7 @@ class WorkoutAdapter(
             binding.textViewSetCount.text = "Series: ${workoutSummary.setCount}"
 
 
-            // 4. Preview de Notas
+            // 5. Preview de Notas
             if (!workout.notes.isNullOrBlank()) {
                 binding.textViewWorkoutNotesPreview.text = "Notas: ${workout.notes}"
                 binding.textViewWorkoutNotesPreview.visibility = View.VISIBLE
@@ -85,8 +105,7 @@ class WorkoutAdapter(
                 binding.textViewWorkoutNotesPreview.visibility = View.GONE
             }
 
-            // ID (sigue oculto)
-            binding.textViewWorkoutId.text = "Workout ID: ${workout.id}"
+            binding.textViewWorkoutId.text = "Workout ID: ${workout.id}" // Sigue oculto por defecto
         }
     }
 

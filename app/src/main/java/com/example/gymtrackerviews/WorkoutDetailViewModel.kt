@@ -13,14 +13,14 @@ import com.example.gymtrackerviews.WorkoutSetDao
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Date
-import java.util.Locale // Asegúrate que este import está si usas String.format con Locale
+import java.util.Locale
 import kotlin.math.max
 
 class WorkoutDetailViewModel(
-    val workoutId: Long, // ID del workout actual
+    val workoutId: Long,
     private val workoutDao: WorkoutDao,
     private val workoutSetDao: WorkoutSetDao,
-    private val exerciseDao: ExerciseDao // <<< NUEVO: ExerciseDao añadido
+    private val exerciseDao: ExerciseDao
 ) : ViewModel() {
 
     private val _workout = MutableStateFlow<Workout?>(null)
@@ -29,22 +29,16 @@ class WorkoutDetailViewModel(
     private val _workoutSets = MutableStateFlow<List<WorkoutSet>>(emptyList())
     val workoutSets: StateFlow<List<WorkoutSet>> = _workoutSets.asStateFlow()
 
-    // --- NUEVO: StateFlow para nombres de ejercicios ---
     private val _exerciseNames = MutableStateFlow<List<String>>(emptyList())
     val exerciseNames: StateFlow<List<String>> = _exerciseNames.asStateFlow()
-    // --- FIN NUEVO ---
 
-    // --- Lógica del Temporizador ---
     private var countDownTimer: CountDownTimer? = null
     private val _isTimerRunning = MutableStateFlow(false)
     val isTimerRunning: StateFlow<Boolean> = _isTimerRunning.asStateFlow()
-
-    private val _startRestTimeInMillis = MutableStateFlow(90000L) // 1:30 por defecto
+    private val _startRestTimeInMillis = MutableStateFlow(90000L)
     val startRestTimeInMillis: StateFlow<Long> = _startRestTimeInMillis.asStateFlow()
-
     private val _timerValue = MutableStateFlow(_startRestTimeInMillis.value)
     val timerValue: StateFlow<Long> = _timerValue.asStateFlow()
-
     private val timerStepMillis: Long = 15000L
     val minRestTimeMillis: Long = 15000L
     val maxRestTimeMillis: Long = 300000L
@@ -53,7 +47,7 @@ class WorkoutDetailViewModel(
         Log.i("WorkoutDetailVM", "ViewModel initialized for workoutId: $workoutId")
         loadWorkoutDetails()
         loadWorkoutSets()
-        loadExerciseNames() // <<< Corregido el nombre del método si lo habías llamado loadAllExerciseNames antes.
+        loadExerciseNames()
         Log.d("WorkoutDetailVM", "Initial timerValue: ${_timerValue.value}, startRestTime: ${_startRestTimeInMillis.value}")
     }
 
@@ -78,21 +72,46 @@ class WorkoutDetailViewModel(
         }
     }
 
-    // --- NUEVO: Método para cargar los nombres de los ejercicios ---
-    // (Asegúrate que el nombre aquí coincide con el llamado en init)
     private fun loadExerciseNames() {
         viewModelScope.launch {
-            exerciseDao.getAllExercises() // Este Flow emite List<Exercise>
-                .map { exercises -> exercises.map { it.name } } // Transformamos List<Exercise> a List<String>
-                .distinctUntilChanged() // Solo emitir si la lista de nombres ha cambiado
+            exerciseDao.getAllExercises()
+                .map { exercises -> exercises.map { it.name } }
+                .distinctUntilChanged()
                 .collectLatest { names ->
                     _exerciseNames.value = names
                     Log.d("WorkoutDetailVM", "Exercise names loaded: ${names.size} items")
                 }
         }
     }
-    // --- FIN NUEVO ---
 
+    // <<< NUEVA FUNCIÓN PARA AÑADIR EJERCICIO A LA BIBLIOTECA >>>
+    suspend fun addExerciseToLibrary(exerciseName: String, muscleGroup: String? = null, description: String? = null) {
+        if (exerciseName.isBlank()) {
+            Log.w("WorkoutDetailVM", "Attempted to add a blank exercise name to library.")
+            return
+        }
+        // Comprobar si ya existe (aunque el DAO tiene OnConflictStrategy.IGNORE, es bueno saberlo)
+        val existingExercises = _exerciseNames.value // Usamos la lista cacheada
+        if (existingExercises.any { it.equals(exerciseName.trim(), ignoreCase = true) }) {
+            Log.d("WorkoutDetailVM", "Exercise '$exerciseName' already exists in library, not adding again.")
+            return
+        }
+
+        val newExercise = Exercise(
+            name = exerciseName.trim(),
+            muscleGroup = muscleGroup?.trim()?.ifEmpty { null },
+            description = description?.trim()?.ifEmpty { null }
+        )
+        try {
+            exerciseDao.insertExercise(newExercise)
+            Log.d("WorkoutDetailVM", "Exercise '$exerciseName' added to library.")
+            // No es necesario refrescar _exerciseNames manualmente aquí,
+            // ya que es un Flow desde la base de datos y se actualizará solo.
+        } catch (e: Exception) {
+            Log.e("WorkoutDetailVM", "Error adding exercise '$exerciseName' to library", e)
+        }
+    }
+    // <<< FIN NUEVA FUNCIÓN >>>
 
     fun updateWorkoutName(newName: String?) {
         viewModelScope.launch {
@@ -221,11 +240,13 @@ class WorkoutDetailViewModel(
 
     fun resetTimer() {
         Log.d("WorkoutDetailVM", "resetTimer called. Workout finished: ${(_workout.value?.endTime != null)}")
-        if (_workout.value?.endTime != null) return
-        pauseTimer()
-        _timerValue.value = _startRestTimeInMillis.value
-        Log.i("WorkoutDetailVM", "Timer reset to: ${_timerValue.value / 1000}s")
+        if (_workout.value?.endTime == null) { // Solo resetear si el workout no ha terminado
+            pauseTimer()
+            _timerValue.value = _startRestTimeInMillis.value
+            Log.i("WorkoutDetailVM", "Timer reset to: ${_timerValue.value / 1000}s")
+        }
     }
+
 
     fun decreaseTimer() {
         Log.d("WorkoutDetailVM", "decreaseTimer called. isTimerRunning: ${_isTimerRunning.value}, workout finished: ${(_workout.value?.endTime != null)}")
@@ -255,3 +276,4 @@ class WorkoutDetailViewModel(
         Log.d("WorkoutDetailVM", "ViewModel cleared, timer cancelled.")
     }
 }
+   

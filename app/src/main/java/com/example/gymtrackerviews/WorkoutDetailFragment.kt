@@ -12,15 +12,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.lifecycleScope // Asegúrate de tener este import si usas lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-// import androidx.navigation.fragment.findNavController // No se usa directamente aquí
+// O puedes usar viewLifecycleOwner.lifecycleScope directamente sin un import específico para lifecycleScope
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gymtrackerviews.databinding.DialogAddSetBinding
 import com.example.gymtrackerviews.databinding.DialogEditWorkoutNameBinding
 import com.example.gymtrackerviews.databinding.FragmentWorkoutDetailBinding
-import com.example.gymtrackerviews.R // Importante para R.drawable
+import com.example.gymtrackerviews.R
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -66,7 +66,6 @@ class WorkoutDetailFragment : Fragment() {
     private fun setupRecyclerView() {
         workoutDetailAdapter = WorkoutDetailAdapter(
             onSetClick = { workoutSetToEdit ->
-                Log.d("WorkoutDetailFragment", "Set Item Clicked - Set ID: ${workoutSetToEdit.id}")
                 if (viewModel.workout.value?.endTime == null) {
                     showAddOrEditSetDialog(workoutSetToEdit)
                 } else {
@@ -74,7 +73,6 @@ class WorkoutDetailFragment : Fragment() {
                 }
             },
             onSetDeleteClick = { workoutSetToDelete ->
-                Log.d("WorkoutDetailFragment", "Set Delete Clicked - Set ID: ${workoutSetToDelete.id}")
                 if (viewModel.workout.value?.endTime == null) {
                     showDeleteSetConfirmationDialog(workoutSetToDelete)
                 } else {
@@ -82,7 +80,6 @@ class WorkoutDetailFragment : Fragment() {
                 }
             },
             onSetDuplicateClick = { workoutSetToDuplicate ->
-                Log.d("WorkoutDetailFragment", "Set Duplicate Clicked - Set ID: ${workoutSetToDuplicate.id}")
                 if (viewModel.workout.value?.endTime == null) {
                     viewModel.insertSet(
                         workoutSetToDuplicate.exerciseName,
@@ -179,10 +176,8 @@ class WorkoutDetailFragment : Fragment() {
 
                 launch {
                     viewModel.isTimerRunning.collect { isRunning ->
-                        // <<< ICONOS PLAY/PAUSE CORREGIDOS AQUÍ para usar tus archivos XML >>>
                         val iconResId = if (isRunning) R.drawable.pause_24px else R.drawable.play_arrow_24px
                         binding.buttonTimerToggle.setIconResource(iconResId)
-                        // <<< FIN CORRECCIÓN ICONOS PLAY/PAUSE >>>
 
                         val currentWorkout = viewModel.workout.value
                         val isFinished = currentWorkout?.endTime != null
@@ -202,7 +197,7 @@ class WorkoutDetailFragment : Fragment() {
                 }
 
                 launch {
-                    viewModel.exerciseNames.collectLatest { namesFromDb ->
+                    viewModel.exerciseNames.collectLatest { names ->
                         if (context != null) {
                             val defaultExerciseNames = try {
                                 resources.getStringArray(R.array.default_exercise_list).toList()
@@ -213,15 +208,14 @@ class WorkoutDetailFragment : Fragment() {
 
                             val combinedNamesSet = mutableSetOf<String>()
                             combinedNamesSet.addAll(defaultExerciseNames)
-                            combinedNamesSet.addAll(namesFromDb)
+                            combinedNamesSet.addAll(names)
 
                             val combinedList = combinedNamesSet.toList().sorted()
 
                             exerciseNamesCombinedAdapter.clear()
                             exerciseNamesCombinedAdapter.addAll(combinedList)
                             exerciseNamesCombinedAdapter.notifyDataSetChanged()
-
-                            Log.d("WorkoutDetailFragment", "Exercise names adapter updated. Defaults: ${defaultExerciseNames.size}, DB: ${namesFromDb.size}, Combined: ${combinedList.size} items.")
+                            Log.d("WorkoutDetailFragment", "Exercise names adapter updated. Defaults: ${defaultExerciseNames.size}, DB: ${names.size}, Combined: ${combinedList.size} items.")
                         }
                     }
                 }
@@ -235,7 +229,6 @@ class WorkoutDetailFragment : Fragment() {
                 showAddOrEditSetDialog(null)
             }
         }
-
         binding.buttonFinishWorkout.setOnClickListener {
             val notes = binding.editTextWorkoutNotes.text.toString().trim()
             viewModel.finishWorkout(notes)
@@ -293,7 +286,6 @@ class WorkoutDetailFragment : Fragment() {
         val isEditing = existingSet != null
 
         dialogBinding.editTextExerciseName.setAdapter(exerciseNamesCombinedAdapter)
-        Log.d("WorkoutDetailFragment", "AutoCompleteTextView adapter set from combined exercise names list.")
 
         if (isEditing && existingSet != null) {
             dialogBinding.editTextExerciseName.setText(existingSet.exerciseName, false)
@@ -306,12 +298,12 @@ class WorkoutDetailFragment : Fragment() {
         builder.setView(dialogBinding.root)
 
         builder.setPositiveButton(if (isEditing) "Actualizar" else "Guardar") { dialog, _ ->
-            val exerciseName = dialogBinding.editTextExerciseName.text.toString().trim()
+            val exerciseNameInput = dialogBinding.editTextExerciseName.text.toString().trim()
             val repsString = dialogBinding.editTextReps.text.toString()
             val weightString = dialogBinding.editTextWeight.text.toString()
 
-            if (exerciseName.isEmpty() || repsString.isEmpty() || weightString.isEmpty()) {
-                context?.let { Toast.makeText(it, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show() }
+            if (exerciseNameInput.isEmpty() || repsString.isEmpty() || weightString.isEmpty()) {
+                Toast.makeText(context, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
                 return@setPositiveButton
             }
 
@@ -319,35 +311,55 @@ class WorkoutDetailFragment : Fragment() {
                 val reps = repsString.toInt()
                 val weight = weightString.toDouble()
 
-                if (reps <= 0) {
-                    context?.let { Toast.makeText(it, "Las repeticiones deben ser mayor que cero", Toast.LENGTH_SHORT).show() }
-                    return@setPositiveButton
-                }
-                if (weight < 0) {
-                    context?.let { Toast.makeText(it, "El peso no puede ser negativo", Toast.LENGTH_SHORT).show() }
+                if (reps <= 0 || weight < 0) {
+                    Toast.makeText(context, "Introduce números válidos para Reps y Peso", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
 
-                if (isEditing && existingSet != null) {
-                    val updatedSet = existingSet.copy(exerciseName = exerciseName, repetitions = reps, weight = weight)
-                    viewModel.updateSet(updatedSet)
-                    context?.let { Toast.makeText(it, "Serie actualizada", Toast.LENGTH_SHORT).show() }
-                } else {
-                    viewModel.insertSet(exerciseName, reps, weight)
-                    context?.let { Toast.makeText(it, "Serie guardada", Toast.LENGTH_SHORT).show() }
+                val currentExerciseList = exerciseNamesCombinedAdapter.let { adapter ->
+                    (0 until adapter.count).map { adapter.getItem(it).toString() }
                 }
-                dialog.dismiss()
+                val exerciseExistsInCombinedList = currentExerciseList.any { it.equals(exerciseNameInput, ignoreCase = true) }
+
+                if (!exerciseExistsInCombinedList && exerciseNameInput.isNotBlank()) {
+                    AlertDialog.Builder(requireContext())
+                        .setTitle("Ejercicio Nuevo")
+                        .setMessage("El ejercicio '$exerciseNameInput' no está en tu biblioteca. ¿Quieres añadirlo?")
+                        .setPositiveButton("Sí, Añadir") { _, _ ->
+                            // <<< CORRECCIÓN AQUÍ: Usar viewLifecycleOwner.lifecycleScope >>>
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                viewModel.addExerciseToLibrary(exerciseNameInput)
+                            }
+                            saveOrUpdateSet(existingSet, exerciseNameInput, reps, weight)
+                            dialog.dismiss()
+                        }
+                        .setNegativeButton("No, Usar Solo Aquí") { _, _ ->
+                            saveOrUpdateSet(existingSet, exerciseNameInput, reps, weight)
+                            dialog.dismiss()
+                        }
+                        .setCancelable(false)
+                        .show()
+                } else {
+                    saveOrUpdateSet(existingSet, exerciseNameInput, reps, weight)
+                    dialog.dismiss()
+                }
+
             } catch (e: NumberFormatException) {
-                context?.let { Toast.makeText(it, "Introduce números válidos para Reps y Peso", Toast.LENGTH_SHORT).show() }
+                Toast.makeText(context, "Introduce números válidos para Reps y Peso", Toast.LENGTH_SHORT).show()
             }
         }
         builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.dismiss() }
+        builder.create().show()
+    }
 
-        try {
-            builder.create().show()
-        } catch (e: Exception) {
-            Log.e("WorkoutDetailFragment", "Error showing Add/Edit dialog", e)
-            context?.let { Toast.makeText(it, "Error al mostrar el diálogo de serie", Toast.LENGTH_SHORT).show() }
+    private fun saveOrUpdateSet(existingSet: WorkoutSet?, exerciseName: String, reps: Int, weight: Double) {
+        if (existingSet != null) {
+            val updatedSet = existingSet.copy(exerciseName = exerciseName, repetitions = reps, weight = weight)
+            viewModel.updateSet(updatedSet)
+            Toast.makeText(context, "Serie actualizada", Toast.LENGTH_SHORT).show()
+        } else {
+            viewModel.insertSet(exerciseName, reps, weight)
+            Toast.makeText(context, "Serie guardada", Toast.LENGTH_SHORT).show()
         }
     }
 
