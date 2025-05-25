@@ -85,13 +85,14 @@
             android:id="@+id/action_workoutListFragment_to_splashFragment"
             app:destination="@id/splashFragment"
             app:popUpTo="@id/nav_graph"
-            app:popUpToInclusive="true" /> <action
-        android:id="@+id/action_workoutListFragment_to_statisticsFragment"
-        app:destination="@id/statisticsFragment"
-        app:enterAnim="@anim/slide_in_right"
-        app:exitAnim="@anim/slide_out_left"
-        app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right" />
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_workoutListFragment_to_statisticsFragment"
+            app:destination="@id/statisticsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_workoutListFragment_to_exerciseLibraryFragment"
             app:destination="@id/exerciseLibraryFragment"
@@ -130,12 +131,26 @@
         android:id="@+id/statisticsFragment"
         android:name="com.example.gymtrackerviews.ui.statistics.StatisticsFragment"
         android:label="Estadísticas"
-        tools:layout="@layout/fragment_statistics" />
+        tools:layout="@layout/fragment_statistics" >
+        <action
+            android:id="@+id/action_statisticsFragment_to_personalRecordsFragment"
+            app:destination="@id/personalRecordsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
 
     <fragment
         android:id="@+id/exerciseLibraryFragment"
         android:name="com.example.gymtrackerviews.ui.library.ExerciseLibraryFragment"
         android:label="Biblioteca de Ejercicios"
         tools:layout="@layout/fragment_exercise_library" />
+
+    <fragment
+        android:id="@+id/personalRecordsFragment"
+        android:name="com.example.gymtrackerviews.ui.statistics.PersonalRecordsFragment"
+        android:label="Mis Récords Personales"
+        tools:layout="@layout/fragment_personal_records" />
 
 </navigation>

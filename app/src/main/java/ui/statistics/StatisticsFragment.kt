@@ -7,11 +7,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.example.gymtrackerviews.GymTrackerApplication
 import com.example.gymtrackerviews.R
 import com.example.gymtrackerviews.databinding.FragmentStatisticsBinding
@@ -39,7 +42,7 @@ class StatisticsFragment : Fragment() {
         StatisticsViewModelFactory(
             application.database.workoutDao(),
             application.database.workoutSetDao(),
-            application.database.exerciseDao() // <<< AÑADIDO exerciseDao
+            application.database.exerciseDao()
         )
     }
 
@@ -56,10 +59,25 @@ class StatisticsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d("StatisticsFragment", "onViewCreated called")
+        (activity as? AppCompatActivity)?.supportActionBar?.title = "Estadísticas"
 
         setupCharts()
         setupExerciseFilter()
+        setupButtonListeners()
         observeViewModelData()
+    }
+
+    private fun setupButtonListeners() {
+        binding.buttonViewPersonalRecords.setOnClickListener {
+            if (isAdded) {
+                try {
+                    findNavController().navigate(R.id.action_statisticsFragment_to_personalRecordsFragment)
+                } catch (e: Exception) {
+                    Log.e("StatisticsFragment", "Error al navegar a récords personales", e)
+                    Toast.makeText(context, "Error al abrir récords", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun setupCharts() {
@@ -69,7 +87,7 @@ class StatisticsFragment : Fragment() {
         )
         setupLineChart(
             binding.lineChartExerciseProgress,
-            "Progreso por Ejercicio" // El label del dataset se pondrá dinámicamente
+            "Progreso por Ejercicio"
         )
     }
 
@@ -81,27 +99,22 @@ class StatisticsFragment : Fragment() {
             context?.let {
                 description.textColor = MaterialColors.getColor(it, com.google.android.material.R.attr.colorOnSurfaceVariant, Color.GRAY)
             }
-
             setTouchEnabled(true)
             isDragEnabled = true
             setScaleEnabled(true)
             setPinchZoom(true)
             legend.isEnabled = true
-
             xAxis.position = XAxis.XAxisPosition.BOTTOM
             xAxis.setDrawGridLines(false)
             xAxis.granularity = 1f
-            // ValueFormatter se establecerá dinámicamente
-
             context?.let { ctx ->
                 val textColor = MaterialColors.getColor(ctx, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
                 xAxis.textColor = textColor
                 axisLeft.textColor = textColor
                 legend.textColor = textColor
             }
-
             axisLeft.setDrawGridLines(true)
-            axisLeft.axisMinimum = 0f // Importante para que el gráfico empiece en 0
+            axisLeft.axisMinimum = 0f
             axisRight.isEnabled = false
         }
     }
@@ -109,20 +122,33 @@ class StatisticsFragment : Fragment() {
     private fun setupExerciseFilter() {
         exerciseFilterAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, mutableListOf<String>())
         binding.autoCompleteTextViewExerciseFilter.setAdapter(exerciseFilterAdapter)
+
         binding.autoCompleteTextViewExerciseFilter.setOnItemClickListener { parent, _, position, _ ->
             val selectedExercise = parent.getItemAtPosition(position) as String
             viewModel.setSelectedExercise(selectedExercise)
+            // Opcional: quitar el foco para que el teclado no aparezca si se usara inputType != none
+            // binding.autoCompleteTextViewExerciseFilter.clearFocus()
         }
+
+        // <<< AÑADIDO: OnClickListener para mostrar el desplegable al tocar >>>
+        binding.autoCompleteTextViewExerciseFilter.setOnClickListener {
+            // Si el adapter tiene items, muestra el desplegable.
+            // Esto es útil si el usuario toca el campo después de haber seleccionado algo
+            // y quiere ver la lista de nuevo.
+            if (exerciseFilterAdapter.count > 0) {
+                binding.autoCompleteTextViewExerciseFilter.showDropDown()
+            }
+        }
+        // <<< FIN AÑADIDO >>>
     }
 
     private fun observeViewModelData() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Observar entrenamientos por semana
                 launch {
                     viewModel.workoutsPerWeek.collectLatest { weeklyData ->
                         Log.d("StatisticsFragment", "Received ${weeklyData.size} weekly data points")
-                        if (weeklyData.size < 2 && weeklyData.none { it.value > 0}) { // Mostrar si hay al menos un dato o más de uno
+                        if (weeklyData.size < 2 && weeklyData.none { it.value > 0}) {
                             binding.lineChartWorkoutsPerWeek.visibility = View.GONE
                             binding.textViewNoDataWorkoutsPerWeek.visibility = View.VISIBLE
                         } else {
@@ -139,17 +165,28 @@ class StatisticsFragment : Fragment() {
                     }
                 }
 
-                // Observar lista de nombres de ejercicios para el desplegable
                 launch {
                     viewModel.allExerciseNames.collectLatest { names ->
                         Log.d("StatisticsFragment", "Received ${names.size} exercise names for filter")
+                        // Guardar el texto actual antes de limpiar, si es que hay alguno
+                        val currentText = binding.autoCompleteTextViewExerciseFilter.text.toString()
+                        val currentFilterActive = viewModel.selectedExerciseProgress.value.isNotEmpty() && names.contains(currentText)
+
+
                         exerciseFilterAdapter.clear()
                         exerciseFilterAdapter.addAll(names)
-                        exerciseFilterAdapter.notifyDataSetChanged()
+                        // No llamar a notifyDataSetChanged() aquí si se va a restaurar el texto,
+                        // ya que el setAdapter y el setText lo harán implícitamente.
+                        // Si el texto actual era un filtro válido, y la lista de nombres lo sigue incluyendo,
+                        // se podría intentar restaurarlo para que no se borre visualmente al actualizar la lista de ejercicios.
+                        // Sin embargo, para un dropdown, normalmente se espera que se limpie o se mantenga la selección
+                        // si la lista de origen cambia.
+                        // Por ahora, dejaremos que se actualice. Si el usuario ya había seleccionado algo,
+                        // el gráfico de progreso para ese ejercicio seguirá mostrándose.
+                        // Y si toca el AutoCompleteTextView, la lista completa aparecerá.
                     }
                 }
 
-                // Observar progreso del ejercicio seleccionado
                 launch {
                     viewModel.selectedExerciseProgress.collectLatest { exerciseProgressData ->
                         val selectedExercise = binding.autoCompleteTextViewExerciseFilter.text.toString()
@@ -166,7 +203,7 @@ class StatisticsFragment : Fragment() {
                         } else {
                             binding.lineChartExerciseProgress.visibility = View.VISIBLE
                             binding.textViewNoDataExerciseProgress.visibility = View.GONE
-                            binding.lineChartExerciseProgress.xAxis.valueFormatter = DateAxisValueFormatter() // Usar el formateador de fecha normal
+                            binding.lineChartExerciseProgress.xAxis.valueFormatter = DateAxisValueFormatter()
                             updateChartWithData(
                                 binding.lineChartExerciseProgress,
                                 exerciseProgressData,
@@ -182,7 +219,7 @@ class StatisticsFragment : Fragment() {
 
     private fun updateChartWithData(chart: LineChart, dataPoints: List<ChartEntryData>, label: String, isWeeklyData: Boolean) {
         val entries = ArrayList<Entry>()
-        val dates = ArrayList<Date>() // Para el DateAxisValueFormatter
+        val dates = ArrayList<Date>()
 
         dataPoints.forEachIndexed { index, dataPoint ->
             entries.add(Entry(index.toFloat(), dataPoint.value))
@@ -203,9 +240,9 @@ class StatisticsFragment : Fragment() {
             lineDataSet.color = primaryColor
             lineDataSet.valueTextColor = onSurfaceColor
             lineDataSet.setCircleColor(primaryColor)
-            lineDataSet.fillColor = primaryColor // Para el área debajo de la línea
-            lineDataSet.setDrawFilled(true) // Habilitar el relleno
-            lineDataSet.fillAlpha = 65 // Transparencia del relleno (0-255)
+            lineDataSet.fillColor = primaryColor
+            lineDataSet.setDrawFilled(true)
+            lineDataSet.fillAlpha = 65
         }
         lineDataSet.lineWidth = 2f
         lineDataSet.circleRadius = 4f
@@ -213,9 +250,9 @@ class StatisticsFragment : Fragment() {
         lineDataSet.valueTextSize = 10f
         lineDataSet.valueFormatter = object : ValueFormatter() {
             override fun getPointLabel(entry: Entry?): String {
-                return if (isWeeklyData) { // Para el gráfico semanal, mostrar como entero
+                return if (isWeeklyData) {
                     entry?.y?.toInt().toString()
-                } else { // Para el gráfico de peso, mostrar con un decimal
+                } else {
                     String.format(Locale.getDefault(), "%.1f", entry?.y)
                 }
             }
@@ -231,7 +268,7 @@ class StatisticsFragment : Fragment() {
         }
 
         chart.invalidate()
-        chart.animateX(500) // Animación sutil al cargar datos
+        chart.animateX(500)
         Log.d("StatisticsFragment", "Chart '$label' updated with ${entries.size} entries.")
     }
 
@@ -241,7 +278,7 @@ class StatisticsFragment : Fragment() {
     }
 }
 
-// Formateador para el eje X de fechas (ya lo tenías)
+// Formateadores de ejes (se mantienen)
 class DateAxisValueFormatter : ValueFormatter() {
     private val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
     private var dates: List<Date> = emptyList()
@@ -260,10 +297,9 @@ class DateAxisValueFormatter : ValueFormatter() {
     }
 }
 
-// Nuevo formateador para el eje X de semanas
 class WeekAxisValueFormatter : ValueFormatter() {
     private val calendar = Calendar.getInstance()
-    private var dates: List<Date> = emptyList() // Usaremos la fecha representativa de la semana
+    private var dates: List<Date> = emptyList()
 
     fun setDates(dates: List<Date>) {
         this.dates = dates
@@ -274,9 +310,7 @@ class WeekAxisValueFormatter : ValueFormatter() {
         return if (index >= 0 && index < dates.size) {
             calendar.time = dates[index]
             val week = calendar.get(Calendar.WEEK_OF_YEAR)
-            // val year = calendar.get(Calendar.YEAR) % 100 // Año corto
-            // "S${week}/${year}"
-            "Sem ${week}" // Más corto
+            "Sem ${week}"
         } else {
             ""
         }

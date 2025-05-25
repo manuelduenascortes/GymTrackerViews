@@ -39,16 +39,14 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:minHeight="300dp">
-
-                <TextView
-                    android:id="@+id/textViewWorkoutsPerWeekChartTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Entrenamientos por Semana"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:layout_marginBottom="8dp"/>
+                android:minHeight="250dp"> <TextView
+                android:id="@+id/textViewWorkoutsPerWeekChartTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Entrenamientos por Semana"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="8dp"/>
 
                 <com.github.mikephil.charting.charts.LineChart
                     android:id="@+id/lineChartWorkoutsPerWeek"
@@ -73,31 +71,25 @@
             android:id="@+id/cardExerciseProgress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="16dp"
-            app:cardElevation="0dp"
+            android:layout_marginTop="16dp" app:cardElevation="0dp"
             android:background="@drawable/bg_translucent_surface_rounded"
             app:layout_constraintTop_toBottomOf="@id/cardWorkoutsPerWeek"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintVertical_bias="0.0">
+            app:layout_constraintEnd_toEndOf="parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:minHeight="350dp">
-
-                <TextView
-                    android:id="@+id/textViewExerciseProgressChartTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Progreso por Ejercicio"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:layout_marginBottom="8dp"/>
+                android:minHeight="300dp"> <TextView
+                android:id="@+id/textViewExerciseProgressChartTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Progreso por Ejercicio"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="8dp"/>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/textFieldExerciseFilter"
@@ -134,6 +126,19 @@
                     tools:visibility="visible"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonViewPersonalRecords"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Ver Mis Récords Personales"
+            android:layout_marginTop="16dp" android:layout_marginBottom="16dp"
+            app:icon="@drawable/trophy_24px"
+            app:layout_constraintTop_toBottomOf="@id/cardExerciseProgress"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>
