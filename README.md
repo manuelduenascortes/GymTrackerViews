@@ -1,4 +1,5 @@
 # GymTrackerViews: Aplicación Android para Seguimiento de Entrenamientos
+![ic_launcher_foreground_gym png ](https://github.com/user-attachments/assets/f0331e33-e8cb-4668-a201-6f3de9a8d4bc)
 
 **Autor:** Manuel Dueñas Cortés
 
