@@ -1,8 +1,6 @@
 # GymTrackerViews: Aplicación Android para Seguimiento de Entrenamientos
 
 **Autor:** Manuel Dueñas Cortés
-**Curso:** 2º Desarrollo de Aplicaciones Multiplataforma (DAM)
-**Fecha de Entrega del Proyecto:** 26 de Mayo de 2025
 
 ## Descripción del Proyecto
 
