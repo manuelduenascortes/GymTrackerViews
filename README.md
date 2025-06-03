@@ -57,8 +57,6 @@ El proyecto está organizado principalmente en los siguientes paquetes dentro de
 * `adapter` (Adapters para los RecyclerViews como `WorkoutAdapter.kt`)
 
 ## Documentación Adicional
-
-* **Memoria Completa del TFG:** Para una descripción exhaustiva del proyecto, objetivos, diseño, desarrollo, resultados y conclusiones, consulta la [Memoria Completa del TFG (Memoria_TFG_Manuel_Duenas_GymTrackerViews.pdf)](Memoria_TFG_Manuel_Duenas_GymTrackerViews.pdf).
 * **Bitácora de Desarrollo:** El seguimiento detallado del proceso de desarrollo, incluyendo decisiones técnicas, problemas encontrados y soluciones aplicadas, se encuentra documentado en la [Bitácora de Desarrollo (BITACORA.md)](BITACORA.md).
 
 ## Cómo Empezar (Configuración del Entorno)
